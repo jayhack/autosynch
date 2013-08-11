@@ -385,13 +385,10 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
  */
 void J_Drawer::draw_frame (J_Frame *frame) {
 
-	std::cout << "---- Draw Frame: Begin ---" << endl;
-
 	J_VideoFrameRef *depthFrame = frame->get_frame_ref ();
 
 	/*### Step 1: initialize (allocate) the texture map if has not previously been initialized ###*/
 	if (pixel_texture_map == NULL) {
-		std::cout << "- initializing pixel texture map " << endl;
 		texture_map_x = MIN_CHUNKS_SIZE(depthFrame->getResolutionX(), TEXTURE_SIZE);
 		texture_map_y = MIN_CHUNKS_SIZE(depthFrame->getResolutionY(), TEXTURE_SIZE);
 		pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
@@ -469,9 +466,6 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 			pDepthRow += rowSize;
 			pTexRow += texture_map_x;
 		}
-	}
-	else {
-		cout << "DEPTH FRAME NOT VALID" << endl;
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);

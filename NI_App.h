@@ -52,21 +52,9 @@ protected:
 	/*--- Drawing --*/
 	J_Drawer drawer;
 
-
 	/*--- Initialize APIs ---*/
 	void initialize_APIs (int argc, char **argv);
 
-	/*--- OpenGL Static Functions ---*/
-	// static void glut_keyboard 		(unsigned char key, int x, int y);
-	// static void glut_display 		();
-	// static void glut_idle 			();
-
-	/*--- OpenGL Member Functions ---*/
-	// virtual	void display 	();
-	// virtual void onkey 		(unsigned char key, int x, int y);
-
-	/*--- OpenGL Inialization ---*/
-	// virtual openni::Status 	InitOpenGL 		(int argc, char **argv);
 
 public:
 

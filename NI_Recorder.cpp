@@ -202,18 +202,17 @@ void NI_Recorder::onkey (unsigned char key, int x, int y) {
 void NI_Recorder::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
-	print_status ("Display", "Getting frame");
+	// print_status ("Display", "Getting frame");
 	J_Frame *frame = device_delegate->readFrame ();
 
 	/*### Step 2: draw it to the screen ###*/
-	if (isRecording()) {
-		print_status ("Display", "Drawing frame");
-		drawer.draw_frame (frame);
-	}
+	// print_status ("Display", "Drawing frame");
+	drawer.draw_frame (frame);
 
 	/*### Step 3: record it ###*/
-	print_status ("Display", "Recording frame");
-	storage_delegate->write_frame (frame);
+	if (isRecording ()) {
+		storage_delegate->write_frame (frame);
+	}
 
 	/*### Step 3: free all memory dedicated to the frame ###*/
 	delete frame;

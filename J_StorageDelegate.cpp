@@ -99,7 +99,7 @@ string J_StorageDelegate::get_next_jvid_filepath (int recording_stage) {
 void J_StorageDelegate::write_skeleton (J_Skeleton * skeleton) {
 
 	/*### Step 1: Skeleton id ###*/
-	skel_outfile << "##### " << skeleton->getTimestamp () << " #####" << endl;
+	skel_outfile << "##### " << current_frame_number << " #####" << endl;
 
 	/*### Step 2: if no skeleton exists, then get out of there ###*/
 	if (!skeleton->isValid ()) {
@@ -146,7 +146,6 @@ void J_StorageDelegate::write_frame_ref (J_VideoFrameRef *frame_ref) {
 	/*### Step 1: open the outfile ###*/
 	/*### NOTE: change this from just 'RAW' later on ###*/
 	string filename = get_next_jvid_filepath (RAW); 
-	cout << "writing to " << filename << endl;
 	ofstream jvid_outfile;
 	jvid_outfile.open (filename.c_str());
 
@@ -184,12 +183,15 @@ void J_StorageDelegate::write_frame (J_Frame *frame) {
 	}
 
  	/*### Step 1: write the skeleton ###*/
- 	print_status ("Storage", "Writing J_Skeleton");
+ 	// print_status ("Storage", "Writing J_Skeleton");
  	write_skeleton (frame->get_skeleton());
 
  	/*### Step 2: write the frame_ref ###*/
- 	print_status ("Storage", "Writing J_VideoFrameRef");
+ 	// print_status ("Storage", "Writing J_VideoFrameRef");
  	write_frame_ref (frame->get_frame_ref());
+
+ 	/*### Step 3: increment the frame number that we are currently on ###*/
+ 	current_frame_number++;
  }
 
 

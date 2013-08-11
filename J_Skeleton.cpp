@@ -65,8 +65,6 @@ J_Skeleton::J_Skeleton () {
  */
 J_Skeleton::J_Skeleton (nite::Skeleton *skeleton, nite::UserTracker *user_tracker) {
 
-	cout << "--- initializing skeleton ---" << endl;
-
 	/*### Step 1: initialize joints ###*/
 	initialize ();
 
