@@ -69,10 +69,6 @@ public:
 	/*--- Computing Properties ---*/
 	nite::BoundingBox getBoundingBox ();
 
-	/*--- Input/Output to file ---*/
-	void write 	(ofstream& outfile);
-	void read 	(ifstream& infile);
-
 	/*--- Setters/Getters ---*/
 	bool		isValid 			();
 	void 		setValid 			(bool value);

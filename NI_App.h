@@ -47,7 +47,7 @@ protected:
 	char				app_name[150];
 
 	/*--- Storage ---*/
-	J_StorageDelegate storage_delegate;
+	J_StorageDelegate *storage_delegate;
 
 	/*--- Drawing --*/
 	J_Drawer drawer;

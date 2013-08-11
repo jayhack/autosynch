@@ -40,20 +40,24 @@ NI_Recorder* NI_Recorder::self = NULL;
  * ---------------------
  * initializes all forms of recording, though does not start writing to output
  */
-NI_Recorder::NI_Recorder (int argc, char** argv) {
+NI_Recorder::NI_Recorder (const char* file_path, int argc, char** argv) {
 	self = this;
 
 	/*### Step 1: initialize the APIs ###*/
+	print_status ("Initialization (Recorder)", "Initializing APIs");
 	initialize_APIs (argc, argv);
 
-
 	/*### Step 2: initialize opengl ###*/
-	print_status ("Initialize NI_Recorder", "Initializing OpenGL");
+	print_status ("Initialization (Recorder)", "Initializing OpenGL");
 	InitOpenGL (argc, argv);
 
 	/*### Step 2: initialize the device/user tracker ###*/
-	print_status ("Initialize NI_Recorder", "Creating Device Delegate");
+	print_status ("Initialization (Recorder)", "Creating Device Delegate");
 	device_delegate = new J_DeviceDelegate ();
+
+	/*### Step 3: initialize the storage delegate ###*/
+	print_status ("Initialization (Recorder)", "Creating Storage Delegate");
+	storage_delegate = new J_StorageDelegate (file_path, MARKED, RAW);
 
 	/*### Step 3: initialize recording to false ###*/
 	stop_recording ();
@@ -198,10 +202,18 @@ void NI_Recorder::onkey (unsigned char key, int x, int y) {
 void NI_Recorder::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
+	print_status ("Display", "Getting frame");
 	J_Frame *frame = device_delegate->readFrame ();
 
 	/*### Step 2: draw it to the screen ###*/
-	drawer.draw_frame (frame);
+	if (isRecording()) {
+		print_status ("Display", "Drawing frame");
+		drawer.draw_frame (frame);
+	}
+
+	/*### Step 3: record it ###*/
+	print_status ("Display", "Recording frame");
+	storage_delegate->write_frame (frame);
 
 	/*### Step 3: free all memory dedicated to the frame ###*/
 	delete frame;

@@ -25,7 +25,6 @@
 /*--- My Files ---*/
 #include "Utilities.h"
 #include "J_Skeleton.h"
-#include "VideoFrameRef_Wrapper.h"
 #include "J_Frame.h"
 #include "J_FilenameManager.h"
 
@@ -68,11 +67,14 @@ public:
 	/*--- Constructor/Destructor ---*/
 	J_StorageDelegate 		();
 	J_StorageDelegate 		(const char *selected_file_path, int new_read_recording_stage=RAW, int new_write_recording_stage=MARKED);
+	~J_StorageDelegate 		();
 
 	/*--- Misc ---*/
 	string get_next_jvid_filepath (int recording_stage);
 
 	/*--- Writing ---*/
+	void write_skeleton 	(J_Skeleton *skeleton);
+	void write_frame_ref 	(J_VideoFrameRef *frame_ref);
 	void write_frame (J_Frame *frame);
 
 	/*--- Reading ---*/

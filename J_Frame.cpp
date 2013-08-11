@@ -25,7 +25,6 @@
 /*--- My Files ---*/
 #include "Utilities.h"
 #include "J_Skeleton.h"
-#include "VideoFrameRef_Wrapper.h"
 #include "J_Frame.h"
 
  /*--- Namespaces ---*/
@@ -52,7 +51,6 @@ J_Frame::J_Frame 	(	J_Skeleton *new_skeleton,
 						skeleton (new_skeleton), 
 						frame_ref (new_frame_ref) 
 {
-	cout << "HERE" << endl;
 	frame_index = new_frame_index;
 	is_valid = true;
 }
@@ -79,28 +77,6 @@ J_VideoFrameRef * 	J_Frame::get_frame_ref 	() {
 }
 
 
-
-
-/*########################################################################################################################*/
-/*###############################[--- Writing ---] #######################################################################*/
-/*########################################################################################################################*/
-/* Function: write_skeleton
- * ------------------------
- * writes the skeleton to the outfile
- */
-void J_Frame::write_skel (ofstream &outfile) {
-
-	skeleton.write (outfile);
-}
-
-/* Function: write_jvid
- * --------------------
- * writes the jvid to the outfile
- */
-void J_Frame::write_jvid (ofstream &outfile) {
-	// frame_ref.write (outfile);
-	cout << "not implemented yet" << endl;
-}
 
 /*########################################################################################################################*/
 /*###############################[--- Debugging ---] #######################################################################*/

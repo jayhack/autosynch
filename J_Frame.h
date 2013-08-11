@@ -53,10 +53,7 @@ public:
 
 	/*--- Misc ---*/
 	bool isValid ();
-
-	/*--- Writing ---*/
-	void write_skel (ofstream &outfile);
-	void write_jvid (ofstream &outfile);			
+		
 
 	/*--- Debugging ---*/
 	void print_data ();

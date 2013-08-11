@@ -51,11 +51,13 @@ def create_new_sync_dir (sync_dir_path):
 	### Step 1: create the top-level '.sync' directory ###
 	os.mkdir (sync_dir_path)
 
-	### Step 2: make the raw/marked/synced directories ###
+	### Step 2: make the raw/marked/synced directories, along with jvid directories ###
 	os.mkdir (os.path.join (sync_dir_path, "Raw"))
+	os.mkdir (os.path.join (sync_dir_path, "Raw/video.jvid"))
 	os.mkdir (os.path.join (sync_dir_path, "Marked"))
+	os.mkdir (os.path.join (sync_dir_path, "Marked/video.jvid"))	
 	os.mkdir (os.path.join (sync_dir_path, "Synced"))
-
+	os.mkdir (os.path.join (sync_dir_path, "Synced/video.jvid"))
 
 
 if __name__ == "__main__":

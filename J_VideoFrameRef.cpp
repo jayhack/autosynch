@@ -31,7 +31,8 @@ J_VideoFrameRef::J_VideoFrameRef () {}
 J_VideoFrameRef::J_VideoFrameRef (openni::VideoFrameRef *video_frame_ref) {
 
 	/*### Step 1: get parameters ###*/
-	video_mode 			= video_frame_ref->getVideoMode ();
+	resolution_x		= video_frame_ref->getVideoMode().getResolutionX ();
+	resolution_y		= video_frame_ref->getVideoMode().getResolutionY ();	
 	crop_origin_x 		= video_frame_ref->getCropOriginX ();
 	crop_origin_y 		= video_frame_ref->getCropOriginY ();
 	cropping_enabled	= video_frame_ref->getCroppingEnabled ();
@@ -59,6 +60,8 @@ J_VideoFrameRef::~J_VideoFrameRef () {
 /*########################################################################################################################*/
 /*###############################[--- Getting Parameters/Data ---] #######################################################*/
 /*########################################################################################################################*/
+int 				J_VideoFrameRef::getResolutionX () 			{ 	return resolution_x; }
+int 				J_VideoFrameRef::getResolutionY () 			{	return resolution_y; }
 int 				J_VideoFrameRef::getCropOriginX () 			{ 	return crop_origin_x; }
 int 				J_VideoFrameRef::getCropOriginY () 			{	return crop_origin_y; }
 bool 				J_VideoFrameRef::getCroppingEnabled () 		{	return cropping_enabled; }
@@ -69,7 +72,6 @@ int 				J_VideoFrameRef::getWidth ()				{ 	return width; }
 int 				J_VideoFrameRef::getStrideInBytes ()		{ 	return stride_in_bytes; }
 uint64_t 			J_VideoFrameRef::getTimestamp ()			{ 	return timestamp; }
 bool 				J_VideoFrameRef::isValid ()					{ 	return is_valid; }
-const openni::VideoMode & 	J_VideoFrameRef::getVideoMode ()	{	return video_mode; }
 
 
 const char * 		J_VideoFrameRef::getData 	()				{ return data; }

@@ -111,9 +111,7 @@ J_Skeleton::J_Skeleton (J_Skeleton *skeleton) {
 
 		/*### Step 1: set joint positions/orientations ###*/
 		for (unsigned int i=0; i<JSKEL_NUM_OF_JOINTS;i++) {
-			cout << "		- setting " << i << "th joint" << endl;
 			J_Joint *current_joint = skeleton->getJoint ((nite::JointType) i);
-			cout << "		- got it... " << endl;
 			joints[i]->set (current_joint);
 		}
 		is_valid = true;
@@ -179,78 +177,42 @@ nite::BoundingBox J_Skeleton::getBoundingBox () {
 /*###############################[--- Reading/Writing ---]################################################################*/
 /*########################################################################################################################*/
 
-/* Function: write
- * ---------------
- * write this skeleton to the specified outfile
- */
+// void J_Skeleton::read (ifstream& infile) {
 
-void J_Skeleton::write (ofstream& outfile) {
+// 	int beat_val, pop_val;
+// 	string line;
 
-	/*### Step 1: Skeleton id ###*/
-	outfile << "##### " << timestamp << " #####" << endl;
+// 	/*### Step 1: timestamp ###*/
+// 	getline (infile, line);
+// 	sscanf (line.c_str(), "##### %d #####\n", &timestamp);
 
-	float coordinates[3] = {0};
+// 	/*### Step 2: joints ###*/
+// 	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
 
-	/*### Step 2: joints ###*/
-	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
-		
-		nite::Point3f position = joints[i]->getPosition ();
-		nite::Point3f position_absolute = joints[i]->getPositionAbsolute ();
+// 		getline (infile, line);
 
-		outfile << i << ": (" << position.x << ", " << position.y << ", " << position.z << ") | ";
-		outfile << 		"( " << position_absolute.x << ", " << position_absolute.y << ", " << position_absolute.z << ")" << endl;
+// 		int joint_name;
+// 		float x, y, z;
 
-	}
+// 		sscanf (line.c_str(), "%d: (%f, %f, %f)\n", &joint_name, &x, &y, &z);
+// 		setJointPosition ((nite::JointType) joint_name, nite::Point3f(x, y, z));
+// 	}
 
+// 	/*### Step 3: beat existence ###*/
+// 	getline(infile, line);
+// 	sscanf(line.c_str(), "----- beat: %d -----\n", &beat_val);
+// 	setBeat ((beat_val == 1));
 
-	/*### Step 3: beat ###*/
-	if (beat) 	outfile << "----- beat: 1 -----" << endl;
-	else 		outfile << "----- beat: 0 -----" << endl;
+// 	/*### Step 4: pop existence ###*/
+// 	getline (infile, line);
+// 	sscanf (line.c_str(), "----- pop: %d -----\n", &pop_val);
+// 	setPop ((pop_val == 1));
 
-	/*### Step 4: pop ###*/
-	if (pop) 	outfile << "----- pop: 1 -----" << endl;
-	else 		outfile << "----- pop: 0 -----" << endl;
+// 	/*### Step 5: get final line ###*/
+// 	getline(infile, line);
 
-	/*### Step 5: trailing newline ###*/
-	outfile << endl;
-}
-
-void J_Skeleton::read (ifstream& infile) {
-
-	int beat_val, pop_val;
-	string line;
-
-	/*### Step 1: timestamp ###*/
-	getline (infile, line);
-	sscanf (line.c_str(), "##### %d #####\n", &timestamp);
-
-	/*### Step 2: joints ###*/
-	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
-
-		getline (infile, line);
-
-		int joint_name;
-		float x, y, z;
-
-		sscanf (line.c_str(), "%d: (%f, %f, %f)\n", &joint_name, &x, &y, &z);
-		setJointPosition ((nite::JointType) joint_name, nite::Point3f(x, y, z));
-	}
-
-	/*### Step 3: beat existence ###*/
-	getline(infile, line);
-	sscanf(line.c_str(), "----- beat: %d -----\n", &beat_val);
-	setBeat ((beat_val == 1));
-
-	/*### Step 4: pop existence ###*/
-	getline (infile, line);
-	sscanf (line.c_str(), "----- pop: %d -----\n", &pop_val);
-	setPop ((pop_val == 1));
-
-	/*### Step 5: get final line ###*/
-	getline(infile, line);
-
-	return;
-}
+// 	return;
+// }
 
 
 

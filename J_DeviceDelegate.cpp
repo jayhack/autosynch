@@ -98,9 +98,7 @@ J_Frame * J_DeviceDelegate::readFrame () {
 
 					nite::Skeleton nite_skeleton = users[0].getSkeleton ();
 					skeleton = new J_Skeleton (&nite_skeleton, user_tracker);
-					cout << "getting the joint for the first time..." << endl;
 					J_Joint *current_joint = skeleton->getJoint ((nite::JointType) 0);
-					cout << "was that successful?" << endl;		
 			}
 		}
 	}
@@ -114,10 +112,8 @@ J_Frame * J_DeviceDelegate::readFrame () {
 	if (skeleton != NULL) {
 		J_Joint *current_joint = skeleton->getJoint ((nite::JointType) 0);
 	}	
+
 	J_Frame * new_frame = new J_Frame (skeleton, &depthFrame, 0);
-	if (skeleton != NULL){
-		cout <<  "Skeleton is valid: " << skeleton->isValid () << endl;
-	}
 	return new_frame;
 
 }

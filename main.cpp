@@ -31,8 +31,9 @@ int main(int argc, char** argv)
 	char *file_path		= argv[2];	
 
 
-
-	NI_Recorder ni_recorder (argc, argv);
+	print_status ("MAIN", "Beginning Initializion of ni_recorder");
+	NI_Recorder ni_recorder (file_path, argc, argv);
+	print_status ("MAIN", "Finished initializion of ni_recorder");
 	ni_recorder.Run ();
 
 	// /*### Step 2: intialize apis ###*/

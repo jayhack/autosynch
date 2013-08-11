@@ -19,7 +19,8 @@ class J_VideoFrameRef {
 private:
 
 	/*--- parameters ---*/
-	openni::VideoMode video_mode;
+	int resolution_x;
+	int resolution_y;
 	int crop_origin_x;
 	int crop_origin_y;
 	bool cropping_enabled;
@@ -46,7 +47,8 @@ public:
 	const char *		getData ();
 
 	/*--- Getting Paramters ---*/
-	const openni::VideoMode & 	getVideoMode ();
+	int 						getResolutionX ();
+	int 						getResolutionY ();
 	int 						getCropOriginX ();
 	int 						getCropOriginY ();
 	bool 						getCroppingEnabled ();

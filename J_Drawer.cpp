@@ -392,8 +392,8 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	/*### Step 1: initialize (allocate) the texture map if has not previously been initialized ###*/
 	if (pixel_texture_map == NULL) {
 		std::cout << "- initializing pixel texture map " << endl;
-		texture_map_x = MIN_CHUNKS_SIZE(depthFrame->getVideoMode().getResolutionX(), TEXTURE_SIZE);
-		texture_map_y = MIN_CHUNKS_SIZE(depthFrame->getVideoMode().getResolutionY(), TEXTURE_SIZE);
+		texture_map_x = MIN_CHUNKS_SIZE(depthFrame->getResolutionX(), TEXTURE_SIZE);
+		texture_map_y = MIN_CHUNKS_SIZE(depthFrame->getResolutionY(), TEXTURE_SIZE);
 		pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
 	}
 
@@ -485,8 +485,8 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 
-	g_nXRes = depthFrame->getVideoMode().getResolutionX();
-	g_nYRes = depthFrame->getVideoMode().getResolutionY();
+	g_nXRes = depthFrame->getResolutionX();
+	g_nYRes = depthFrame->getResolutionY();
 
 	// upper left
 	glTexCoord2f(0, 0);
