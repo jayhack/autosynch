@@ -55,7 +55,7 @@ private:
 	int colorCount;
 
 	/*--- Dealing with raw depth map ---*/
-	float					depth_histogram[MAX_DEPTH];
+	// float					depth_histogram[MAX_DEPTH];
 	openni::RGB888Pixel*	pixel_texture_map;
 	unsigned int			texture_map_x;
 	unsigned int			texture_map_y;

@@ -108,12 +108,8 @@ J_Frame * J_DeviceDelegate::readFrame () {
 
 
 	/*### Step 4: create the actual frame ###*/
-
-	if (skeleton != NULL) {
-		J_Joint *current_joint = skeleton->getJoint ((nite::JointType) 0);
-	}	
-
-	J_Frame * new_frame = new J_Frame (skeleton, &depthFrame, 0);
+	J_VideoFrameRef *frame_ref = new J_VideoFrameRef (&depthFrame);
+	J_Frame * new_frame = new J_Frame (skeleton, frame_ref, 0);
 	return new_frame;
 
 }

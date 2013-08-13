@@ -32,7 +32,7 @@ mode_map = {
 }
 
 play_options_map = {
-	'r': 'Raw/skeleton.skel',
+	'r': 'Raw',
 	'b': 'Marked/skeleton_just_beats.skel',
 	'p': 'Marked/skeleton.skel',
 	's': 'Synced/skeleton.skel'
@@ -118,10 +118,8 @@ if __name__ == "__main__":
 		selected_file = raw_input ("Which file would you like to play?\n- r = raw\n- b = just beats marked\n- p = both beats and pops marked\n- s = synchronized\nFile choice: ")
 		if not selected_file in play_options_map:
 			print_error ("Dafuq was that", "enter one of the above options")
-		else:
-			play_file_name = play_options_map[selected_file]
 
-		cpp_args = ['play', os.path.join(sync_dir_path, play_file_name), os.path.join(sync_dir_path, 'Synced/dummy.skel'), os.path.join (sync_dir_path, "Raw/video.oni")]
+		cpp_args = ['play', sync_dir_path];
 		os.chdir (os.path.join(os.getcwd(), "Bin"))
 		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)
 

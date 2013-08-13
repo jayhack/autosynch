@@ -38,9 +38,11 @@ using namespace std;
  */
 void J_Skeleton::initialize () {
 
-	/*### Step 1: initialize timestamp, pop ###*/
+	/*### Step 1: initialize timestamp, pop, is_valid ###*/
 	beat 			= false;
 	pop 			= false;
+	is_valid		= false;
+	timestamp 		= -1;
 				
 	/*### Step 2: initialize joints ###*/
 	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
@@ -54,8 +56,10 @@ void J_Skeleton::initialize () {
  * initializes via a map from nite::JoinType to J_Joints
  */
 J_Skeleton::J_Skeleton () {
+
 	/*### Step 1: initialize joints ###*/
 	initialize ();
+
 }
 
 
@@ -171,49 +175,6 @@ nite::BoundingBox J_Skeleton::getBoundingBox () {
 
 
 
-/*########################################################################################################################*/
-/*###############################[--- Reading/Writing ---]################################################################*/
-/*########################################################################################################################*/
-
-// void J_Skeleton::read (ifstream& infile) {
-
-// 	int beat_val, pop_val;
-// 	string line;
-
-// 	/*### Step 1: timestamp ###*/
-// 	getline (infile, line);
-// 	sscanf (line.c_str(), "##### %d #####\n", &timestamp);
-
-// 	/*### Step 2: joints ###*/
-// 	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
-
-// 		getline (infile, line);
-
-// 		int joint_name;
-// 		float x, y, z;
-
-// 		sscanf (line.c_str(), "%d: (%f, %f, %f)\n", &joint_name, &x, &y, &z);
-// 		setJointPosition ((nite::JointType) joint_name, nite::Point3f(x, y, z));
-// 	}
-
-// 	/*### Step 3: beat existence ###*/
-// 	getline(infile, line);
-// 	sscanf(line.c_str(), "----- beat: %d -----\n", &beat_val);
-// 	setBeat ((beat_val == 1));
-
-// 	/*### Step 4: pop existence ###*/
-// 	getline (infile, line);
-// 	sscanf (line.c_str(), "----- pop: %d -----\n", &pop_val);
-// 	setPop ((pop_val == 1));
-
-// 	/*### Step 5: get final line ###*/
-// 	getline(infile, line);
-
-// 	return;
-// }
-
-
-
 
 
 
@@ -280,15 +241,9 @@ void J_Skeleton::setPop(bool pop_value) {
 J_Joint *J_Skeleton::getJoint (nite::JointType joint_type) {
 	return joints [(int) joint_type];
 }
-void J_Skeleton::setJointPosition (nite::JointType joint_type, nite::Point3f new_position) {
-	joints[(int) joint_type]->setPosition(new_position);
-	return;
+void J_Skeleton::setJoint (nite::JointType joint_type, nite::Point3f position, nite::Point3f position_absolute, nite::Quaternion orientation) {
+	joints [(int) joint_type]->set (position, position_absolute, orientation);
 }
-void J_Skeleton::setJointOrientation (nite::JointType joint_type, nite::Quaternion new_orientation) {
-	joints[(int) joint_type]->setOrientation(new_orientation);
-	return;
-}
-
 
 
 

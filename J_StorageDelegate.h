@@ -78,7 +78,9 @@ public:
 	void write_frame (J_Frame *frame);
 
 	/*--- Reading ---*/
-	void read_frame (J_Frame *frame);
+	J_Skeleton *		read_skeleton 	();
+	J_VideoFrameRef *	read_frame_ref 	();
+	J_Frame * 			read_frame 		();
 
 	/*--- Controls ---*/
 	void start_recording ();

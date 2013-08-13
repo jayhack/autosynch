@@ -21,3 +21,4 @@ then do ./x64-.../executable (play|record) filpath
 		 - Raw/skeleton.skel --> Synced/skeleton.skel 
 		 - Raw/video.oni --> Synced/skeleton.skel
 
+

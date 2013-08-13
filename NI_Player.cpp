@@ -1,5 +1,5 @@
 /* ---------------------------------------------- 	*
- *	File: NI_Recorder.h
+ *	File: NI_Player.h
  *	-------------------
  *	Class to take care of all recording of skeleton
  * 	and device streams
@@ -23,13 +23,13 @@
 #include "Utilities.h"
 #include "J_Skeleton.h"
 #include "J_Frame.h"
-#include "NI_Recorder.h"
+#include "NI_Player.h"
 
 /*--- Namespaces ---*/
 using namespace std;
 
 /*--- Initialize Static Elements ---*/
-NI_Recorder* NI_Recorder::self = NULL;
+NI_Player* NI_Player::self = NULL;
 
 
 
@@ -40,41 +40,33 @@ NI_Recorder* NI_Recorder::self = NULL;
  * ---------------------
  * initializes all forms of recording, though does not start writing to output
  */
-NI_Recorder::NI_Recorder (const char* file_path, int argc, char** argv) {
+NI_Player::NI_Player (const char* file_path, int argc, char** argv) {
 	self = this;
 
 	/*### Step 1: initialize the APIs ###*/
-	print_status ("Initialization (Recorder)", "Initializing APIs");
+	print_status ("Initialization (Player)", "Initializing APIs");
 	initialize_APIs (argc, argv);
 
 	/*### Step 2: initialize opengl ###*/
-	print_status ("Initialization (Recorder)", "Initializing OpenGL");
+	print_status ("Initialization (Player)", "Initializing OpenGL");
 	InitOpenGL (argc, argv);
 
-	/*### Step 2: initialize the device/user tracker ###*/
-	print_status ("Initialization (Recorder)", "Creating Device Delegate");
-	device_delegate = new J_DeviceDelegate ();
-
 	/*### Step 3: initialize the storage delegate ###*/
-	print_status ("Initialization (Recorder)", "Creating Storage Delegate");
-	storage_delegate = new J_StorageDelegate (file_path, MARKED, RAW);
+	print_status ("Initialization (Player)", "Creating Storage Delegate");
+	storage_delegate = new J_StorageDelegate (file_path, RAW, MARKED);
 
-	/*### Step 3: initialize recording to false ###*/
-	stop_recording ();
+	print_status ("Initialization (Player)", "Complete");	
+
 }
 
 /* Function: Destructor
  * --------------------
  * stops recording and closes all files
  */
-NI_Recorder::~NI_Recorder () {
-		
-	/*### Step 1: free all memory allocatd for the device delegate ###*/
-	print_status ("Finalization (Recorder)", "Deleting device delegate");
-	delete device_delegate;
+NI_Player::~NI_Player () {
 
 	/*### Step 2: free all memory allocatd for the device delegate ###*/
-	print_status ("Finalization (Recorder)", "Deleting storage delegate");
+	print_status ("Finalization (Player)", "Deleting storage delegate");
 	delete storage_delegate;
 
 }
@@ -89,7 +81,7 @@ NI_Recorder::~NI_Recorder () {
  * -------------------------
  * sets up OpenGL hooks 
  */
-void NI_Recorder::InitOpenGLHooks () {
+void NI_Player::InitOpenGLHooks () {
 	glutKeyboardFunc 	(glut_keyboard);
 	glutDisplayFunc		(glut_display);
 	glutIdleFunc		(glut_idle);
@@ -99,7 +91,7 @@ void NI_Recorder::InitOpenGLHooks () {
  * --------------------
  * initializes OpenGL
  */
-openni::Status NI_Recorder::InitOpenGL (int argc, char **argv) {
+openni::Status NI_Player::InitOpenGL (int argc, char **argv) {
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -128,43 +120,18 @@ openni::Status NI_Recorder::InitOpenGL (int argc, char **argv) {
 //  * these functions serve as the interface to OpenGL;
 //  * they are static (?)
 //  */
-void NI_Recorder::glut_idle() {
+void NI_Player::glut_idle() {
 	
 	glutPostRedisplay();
 }
-void NI_Recorder::glut_display() {
+void NI_Player::glut_display() {
 
-	NI_Recorder::self->display();
+	NI_Player::self->display();
 }
-void NI_Recorder::glut_keyboard(unsigned char key, int x, int y) {
+void NI_Player::glut_keyboard(unsigned char key, int x, int y) {
 	
-	NI_Recorder::self->onkey(key, x, y);
+	NI_Player::self->onkey(key, x, y);
 }
-
-
-
-/*########################################################################################################################*/
-/*###############################[--- Recording Manipulation ---] ########################################################*/
-/*########################################################################################################################*/
-/* Function: is_recording
- * ----------------------
- * returns wether we are recording or not
- */
-bool NI_Recorder::isRecording () {
-	return is_recording;
-}
-
-/* Function: (start|stop)_recording
- * -------------------------
- * starts/stops the recording
- */
-void NI_Recorder::start_recording () {
-	is_recording = true;
-}
-void NI_Recorder::stop_recording () {
-	is_recording = false;
-}
-
 
 
 
@@ -179,7 +146,7 @@ void NI_Recorder::stop_recording () {
  * here, it mainly controls wether recording is active or not, 
  * also quitting the application.
  */
-void NI_Recorder::onkey (unsigned char key, int x, int y) {
+void NI_Player::onkey (unsigned char key, int x, int y) {
 	
 	switch (key)
 	{
@@ -188,43 +155,47 @@ void NI_Recorder::onkey (unsigned char key, int x, int y) {
 			// Finalize();
 			exit (1);
 
-		/*### B: start recording ###*/
-		case 'r':
-			print_status ("Main operation", "Started recording");
-			start_recording ();
+		/*### B: label frame as beat ###*/
+		case 'b':
+			print_status ("Main operation", "Labelled beat");
+			//do something to label the beat here!
 			break;	
 
-		/*### P: stop recording ###*/
+		/*### P: label frame as pop ###*/
 		case 's':
-			print_status ("Main operation", "Stopped recording");
+			print_status ("Main operation", "Labelled pop");
+			//do something to label the pop here!
 			break;
+
 	}
 }
 
-void NI_Recorder::display () {
+void NI_Player::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
-	// print_status ("Display", "Getting frame");
-	J_Frame *frame = device_delegate->readFrame ();
+	print_status ("Display", "Getting frame");
+	J_Frame *frame = storage_delegate->read_frame ();
 
 	/*### Step 2: draw it to the screen ###*/
-	// print_status ("Display", "Drawing frame");
+	print_status ("Display", "Drawing frame");
 	drawer.draw_frame (frame);
 
 	/*### Step 3: record it ###*/
-	if (isRecording ()) {
-		storage_delegate->write_frame (frame);
-	} 	 
+	// if (isRecording ()) {
+	// storage_delegate->write_frame (frame);
+	// }
 
 	/*### Step 3: free all memory dedicated to the frame ###*/
 	delete frame;
+
+	usleep (30000);
 }
 
 /* Function: Run
  * -------------
  * engages in the main loop, does not return.
  */
-openni::Status NI_Recorder::Run() {	
+openni::Status NI_Player::Run() {	
 	glutMainLoop();
 	return openni::STATUS_OK;
 }

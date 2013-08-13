@@ -34,8 +34,8 @@ private:
 
 	/*--- Data ---*/
 	int frame_index;
-	J_Skeleton			skeleton;
-	J_VideoFrameRef 	frame_ref;
+	J_Skeleton			* skeleton;
+	J_VideoFrameRef 	* frame_ref;
 
 	/*--- State ---*/
 	bool is_valid;
@@ -44,7 +44,7 @@ public:
 
 	/*--- Constructors ---*/
 	J_Frame ();
-	J_Frame (J_Skeleton *new_skeleton, openni::VideoFrameRef *new_frame, int new_frame_index);
+	J_Frame (J_Skeleton *new_skeleton, J_VideoFrameRef *new_frame, int new_frame_index);
 
 	/*--- Getters ---*/
 	J_Skeleton 			*get_skeleton 	();

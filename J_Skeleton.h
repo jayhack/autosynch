@@ -79,7 +79,7 @@ public:
 	bool		getPop				();
 	void 		setPop				(bool pop_value);
 	J_Joint 	*getJoint 			(nite::JointType joint_type);
-	void 		setJoint 			(nite::JointType joint_type, nite::SkeletonJoint joint);
+	void 		setJoint 			(nite::JointType joint_type, nite::Point3f new_position, nite::Point3f new_position_absolute, nite::Quaternion new_orientation);
 	void 		setJointPosition	(nite::JointType joint_type, nite::Point3f new_position);
 	void 		setJointOrientation	(nite::JointType joint_type, nite::Quaternion new_orientation);
 

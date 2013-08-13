@@ -52,7 +52,7 @@ J_Drawer::J_Drawer () {
 	g_nXRes = 0; 
 	g_nYRes = 0;
 
-	g_poseTimeoutToExit = 2000;;
+	g_poseTimeoutToExit = 2000;
 
 	g_generalMessage[0] = 0;
 }
@@ -385,6 +385,8 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
  */
 void J_Drawer::draw_frame (J_Frame *frame) {
 
+	cout << "checkpoint 1" << endl;
+
 	J_VideoFrameRef *depthFrame = frame->get_frame_ref ();
 
 	/*### Step 1: initialize (allocate) the texture map if has not previously been initialized ###*/
@@ -401,9 +403,11 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	glLoadIdentity();
 	glOrtho(0, GL_WIN_SIZE_X, GL_WIN_SIZE_Y, 0, -1.0, 1.0);
 
+	cout << "checkpoint 2" << endl;
 
 	/*### if we are drawing the depth map, calculate a histogram ###*/
-	calculateHistogram(depth_histogram, MAX_DEPTH, depthFrame);
+	// calculateHistogram(depth_histogram, MAX_DEPTH, depthFrame);
+
 
 
 	/*### initialize m_pTexMap to zero ###*/
@@ -412,61 +416,62 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 
 
 	float factor[3] = {1, 1, 1};
+	cout << "checkpoint 3" << endl;
 	/*###[ --- Drawing Users in Special Colors --- ]###*/
 	// check if we need to draw depth frame to texture
 	// if (depthFrame->isValid() && drawer.g_drawDepth) {
-	if (depthFrame->isValid ()) {
+	// if (depthFrame->isValid ()) {
 
-		// const nite::UserId* pLabels = userLabels.getPixels();
+	// 	// const nite::UserId* pLabels = userLabels.getPixels();
 
-		const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depthFrame->getData();
-		openni::RGB888Pixel* pTexRow = pixel_texture_map + depthFrame->getCropOriginY() * texture_map_x;
-		int rowSize = depthFrame->getStrideInBytes() / sizeof(openni::DepthPixel);
+	// 	const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depthFrame->getData();
+	// 	openni::RGB888Pixel* pTexRow = pixel_texture_map + depthFrame->getCropOriginY() * texture_map_x;
+	// 	int rowSize = depthFrame->getStrideInBytes() / sizeof(openni::DepthPixel);
 
-		for (int y = 0; y < depthFrame->getHeight(); ++y)
-		{
-			const openni::DepthPixel* pDepth = pDepthRow;
-			openni::RGB888Pixel* pTex = pTexRow + depthFrame->getCropOriginX();
+	// 	for (int y = 0; y < depthFrame->getHeight(); ++y)
+	// 	{
+	// 		const openni::DepthPixel* pDepth = pDepthRow;
+	// 		openni::RGB888Pixel* pTex = pTexRow + depthFrame->getCropOriginX();
 
-			// for (int x = 0; x < depthFrame->getWidth(); ++x, ++pDepth, ++pTex, ++pLabels)
-			for (int x = 0; x < depthFrame->getWidth(); ++x, ++pDepth, ++pTex)
-			{
-				if (*pDepth != 0)
-				{
-					// if (*pLabels == 0)
-					// {
-						if (!g_drawBackground)
-						{
-							factor[0] = factor[1] = factor[2] = 0;
+	// 		// for (int x = 0; x < depthFrame->getWidth(); ++x, ++pDepth, ++pTex, ++pLabels)
+	// 		for (int x = 0; x < depthFrame->getWidth(); ++x, ++pDepth, ++pTex)
+	// 		{
+	// 			if (*pDepth != 0)
+	// 			{
+	// 				// if (*pLabels == 0)
+	// 				// {
+	// 					if (!g_drawBackground)
+	// 					{
+	// 						factor[0] = factor[1] = factor[2] = 0;
 
-						}
-						else
-						{
-							factor[0] = Colors[colorCount][0];
-							factor[1] = Colors[colorCount][1];
-							factor[2] = Colors[colorCount][2];
-						}
-					// }
-					// else
-					// {
-						// factor[0] = drawer.Colors[*pLabels % drawer.colorCount][0];
-						// factor[1] = drawer.Colors[*pLabels % drawer.colorCount][1];
-						// factor[2] = drawer.Colors[*pLabels % drawer.colorCount][2];
-					// }
+	// 					}
+	// 					else
+	// 					{
+	// 						factor[0] = Colors[colorCount][0];
+	// 						factor[1] = Colors[colorCount][1];
+	// 						factor[2] = Colors[colorCount][2];
+	// 					}
+	// 				// }
+	// 				// else
+	// 				// {
+	// 					// factor[0] = drawer.Colors[*pLabels % drawer.colorCount][0];
+	// 					// factor[1] = drawer.Colors[*pLabels % drawer.colorCount][1];
+	// 					// factor[2] = drawer.Colors[*pLabels % drawer.colorCount][2];
+	// 				// }
 
-					int nHistValue = depth_histogram[*pDepth];
-					pTex->r = nHistValue*factor[0];
-					pTex->g = nHistValue*factor[1];
-					pTex->b = nHistValue*factor[2];
+	// 				int nHistValue = depth_histogram[*pDepth];
+	// 				pTex->r = nHistValue*factor[0];
+	// 				pTex->g = nHistValue*factor[1];
+	// 				pTex->b = nHistValue*factor[2];
 
-					factor[0] = factor[1] = factor[2] = 1;
-				}
-			}
+	// 				factor[0] = factor[1] = factor[2] = 1;
+	// 			}
+	// 		}
 
-			pDepthRow += rowSize;
-			pTexRow += texture_map_x;
-		}
-	}
+	// 		pDepthRow += rowSize;
+	// 		pTexRow += texture_map_x;
+	// 	}
+	// }
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -479,6 +484,7 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 
+	cout << "checkpoint 4" << endl;
 	g_nXRes = depthFrame->getResolutionX();
 	g_nYRes = depthFrame->getResolutionY();
 
@@ -497,16 +503,20 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-
+	
+	cout << "checkpoint 5" << endl;
 	/*### Finally - draw the skeleton ###*/
 	J_Skeleton *skeleton = frame->get_skeleton ();
-	if (skeleton->isValid ()) {
-		Draw_J_Skeleton (frame->get_skeleton ());
+	if (skeleton != NULL) {
+		cout << "Skeleton exists..." << endl;
+		Draw_J_Skeleton (skeleton);
 	}
-
+	cout << "checkpoint 6" << endl;
 
 	/*### Swap buffers (display) ###*/
 	glutSwapBuffers ();
+
+	cout << "checkpoint 7" << endl;
 }
 
 

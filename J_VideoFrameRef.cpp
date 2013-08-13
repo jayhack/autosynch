@@ -27,7 +27,10 @@ using namespace std;
  * given a pointer to an openni::VideoFrameRef, the constructor will 
  * make a deep copy of it and store all information locally.
  */
-J_VideoFrameRef::J_VideoFrameRef () {}
+J_VideoFrameRef::J_VideoFrameRef () {
+	is_valid = false;
+	data = NULL;
+}
 J_VideoFrameRef::J_VideoFrameRef (openni::VideoFrameRef *video_frame_ref) {
 
 	/*### Step 1: get parameters ###*/
@@ -56,6 +59,36 @@ J_VideoFrameRef::~J_VideoFrameRef () {
 	delete data;
 }
 
+
+/*########################################################################################################################*/
+/*###############################[--- Setting Parameters/Data ---] #######################################################*/
+/*########################################################################################################################*/
+void 				J_VideoFrameRef::setResolutionX (int value) {resolution_x = value;}
+void 				J_VideoFrameRef::setResolutionY (int value) {resolution_y = value;}
+void 				J_VideoFrameRef::setCropOriginX (int value) {crop_origin_x = value;}
+void 				J_VideoFrameRef::setCropOriginY (int value) {crop_origin_y = value;}
+void 				J_VideoFrameRef::setCroppingEnabled (bool value) {cropping_enabled = value; }
+void				J_VideoFrameRef::setDataSize (int value) {data_size = value;}
+void 				J_VideoFrameRef::setFrameIndex (int value) {frame_index = value;}
+void 				J_VideoFrameRef::setHeight (int value) {height = value;}
+void 				J_VideoFrameRef::setWidth (int value) {width = value;}
+void 				J_VideoFrameRef::setStrideInBytes (int value) {stride_in_bytes = value;}
+void				J_VideoFrameRef::setTimestamp (uint64_t value) {timestamp = value;}
+void 				J_VideoFrameRef::setValid (bool value) {is_valid = value;}
+
+
+/* Function: allocate_for_data
+ * ---------------------------
+ * This function will allocate memory for data
+ */
+void 				J_VideoFrameRef::allocate_for_data () {
+
+	/*--- Free data if it was previously pointing to something ---*/
+	if (data != NULL) {
+		delete data;
+	}
+	data = new char [data_size];
+}
 
 /*########################################################################################################################*/
 /*###############################[--- Getting Parameters/Data ---] #######################################################*/

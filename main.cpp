@@ -15,6 +15,7 @@
 #include "Utilities.h"
 #include "J_StorageDelegate.h"
 #include "NI_Recorder.h"
+#include "NI_Player.h"
 
 
 /*--- Namespaces ---*/
@@ -31,10 +32,16 @@ int main(int argc, char** argv)
 	char *file_path		= argv[2];	
 
 
-	print_status ("MAIN", "Beginning Initializion of ni_recorder");
-	NI_Recorder ni_recorder (file_path, argc, argv);
-	print_status ("MAIN", "Finished initializion of ni_recorder");
-	ni_recorder.Run ();
+	// /*### For recording ###*/
+	// print_status ("MAIN", "Beginning Initializion of ni_recorder");
+	// NI_Recorder ni_recorder (file_path, argc, argv);
+	// print_status ("MAIN", "Finished initializion of ni_recorder");
+	// ni_recorder.Run ();
+
+	/*### For playing ###*/
+	print_status ("MAIN", "Beginning Initialization of ni_player");
+	NI_Player ni_player (file_path, argc, argv);
+	ni_player.Run ();
 
 	// /*### Step 2: intialize apis ###*/
 	// initialize_apis ();

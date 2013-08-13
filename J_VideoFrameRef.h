@@ -46,7 +46,22 @@ public:
 	/*--- Getting Data ---*/
 	const char *		getData ();
 
-	/*--- Getting Paramters ---*/
+	/*--- Getting/Setting Paramters ---*/
+	void 						allocate_for_data ();
+
+	void 						setResolutionX (int value);
+	void 						setResolutionY (int value);
+	void 						setCropOriginX (int value);
+	void 						setCropOriginY (int value);
+	void 						setCroppingEnabled (bool value);
+	void						setDataSize (int value); 
+	void 						setFrameIndex (int value);
+	void 						setHeight (int value);
+	void 						setWidth (int value);
+	void 						setStrideInBytes (int value);
+	void						setTimestamp (uint64_t value);
+	void 						setValid (bool value);
+
 	int 						getResolutionX ();
 	int 						getResolutionY ();
 	int 						getCropOriginX ();
