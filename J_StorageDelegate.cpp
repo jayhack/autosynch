@@ -284,8 +284,6 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
  */
 J_VideoFrameRef * J_StorageDelegate::read_frame_ref() {
 
-	cout << "--- READ FRAME REF BEGIN --- " << endl;
-
 	J_VideoFrameRef * frame_ref = new J_VideoFrameRef;
 
 	/*### Step 1: open the infile ###*/
@@ -293,7 +291,6 @@ J_VideoFrameRef * J_StorageDelegate::read_frame_ref() {
 	string filename = get_next_jvid_filepath (RAW); 
 	ifstream jvid_infile;
 	jvid_infile.open (filename.c_str());
-	cout << "	- filename: " << filename << endl;
 	/*### Step 2: read in each of the properties ###*/
 	string line;
 
@@ -358,8 +355,6 @@ J_VideoFrameRef * J_StorageDelegate::read_frame_ref() {
 	frame_ref->allocate_for_data ();
 	const char * data = frame_ref->getData ();
 	jvid_infile.read ((char *) frame_ref->getData (), frame_ref->getDataSize());
-
-	cout << "--- READ FRAME REF COMPLETE ---" << endl;	
 
 	return frame_ref;
 }

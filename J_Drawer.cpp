@@ -388,13 +388,10 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
  */
 void J_Drawer::draw_frame (J_Frame *frame) {
 
-	cout << "checkpoint 1" << endl;
-
 	J_VideoFrameRef *depthFrame = frame->get_frame_ref ();
 
 	/*### Step 1: initialize (allocate) the texture map if has not previously been initialized ###*/
 	if (pixel_texture_map == NULL) {
-		cout << "pixel texture map is NULL " << endl;
 		texture_map_x = MIN_CHUNKS_SIZE(depthFrame->getResolutionX(), TEXTURE_SIZE);
 		texture_map_y = MIN_CHUNKS_SIZE(depthFrame->getResolutionY(), TEXTURE_SIZE);
 		pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
