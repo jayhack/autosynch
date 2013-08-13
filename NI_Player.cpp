@@ -174,7 +174,7 @@ void NI_Player::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
 	print_status ("Display", "Getting frame");
-	J_Frame *frame = storage_delegate->read_frame ();
+	J_Frame *frame = storage_delegate->read ();
 
 	/*### Step 2: draw it to the screen ###*/
 	print_status ("Display", "Drawing frame");

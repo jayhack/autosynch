@@ -52,9 +52,6 @@ private:
 	ifstream skel_infile;	
 	ofstream skel_outfile;
 
-	/*--- Jvid ---*/
-	ifstream jvid_infile;			
-	ofstream jvid_outfile;			
 
 
 
@@ -70,17 +67,20 @@ public:
 	~J_StorageDelegate 		();
 
 	/*--- Misc ---*/
-	string get_next_jvid_filepath (int recording_stage);
+	string get_next_depth_filepath (int recording_stage);
+	string get_next_color_filepath (int recording_stage);
 
 	/*--- Writing ---*/
 	void write_skeleton 	(J_Skeleton *skeleton);
-	void write_frame_ref 	(J_VideoFrameRef *frame_ref);
-	void write_frame (J_Frame *frame);
+	void write_frame 		(J_VideoFrameRef *frame_ref, ofstream &outfile);
+	void write_frames 		(J_VideoFrameRef *depth_frame, J_VideoFrameRef *color_frame);
+	void write 				(J_Frame *frame);
 
 	/*--- Reading ---*/
-	J_Skeleton *		read_skeleton 	();
-	J_VideoFrameRef *	read_frame_ref 	();
-	J_Frame * 			read_frame 		();
+	J_Skeleton *				read_skeleton 	();
+	J_VideoFrameRef *			read_frame 		(ifstream &infile);
+	vector <J_VideoFrameRef*>	read_frames 	();
+	J_Frame * 					read 			();
 
 	/*--- Controls ---*/
 	void start_recording ();

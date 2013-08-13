@@ -41,6 +41,7 @@ int main(int argc, char** argv)
 	/*### For playing ###*/
 	print_status ("MAIN", "Beginning Initialization of ni_player");
 	NI_Player ni_player (file_path, argc, argv);
+	print_status ("MAIN", "Finished initializion of ni_player");	
 	ni_player.Run ();
 
 	// /*### Step 2: intialize apis ###*/

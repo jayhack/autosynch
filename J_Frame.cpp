@@ -42,7 +42,8 @@
 J_Frame::J_Frame () { 
 	is_valid = false;
 	skeleton = NULL;
-	frame_ref = NULL;
+	depth_frame = NULL;
+	color_frame = NULL;
 }
 
 /* Function: Constructor
@@ -50,10 +51,10 @@ J_Frame::J_Frame () {
  * given a pointer to a filled-out skeleton and a filled-out frame_ref,
  * this function will make a new J_Frame from it.
  */
-J_Frame::J_Frame 	(	J_Skeleton *new_skeleton, J_VideoFrameRef *new_frame_ref, int new_frame_index) {
+J_Frame::J_Frame 	(J_Skeleton *new_skeleton, J_VideoFrameRef *new_depth_frame, J_VideoFrameRef *new_color_frame) {
 	skeleton = new_skeleton;
-	frame_ref = new_frame_ref;
-	frame_index = new_frame_index;
+	depth_frame = new_depth_frame;
+	color_frame = new_color_frame;
 	is_valid = true;
 }
 
@@ -73,8 +74,12 @@ J_Skeleton  *		J_Frame::get_skeleton 	() {
 	return skeleton;
 }
 
-J_VideoFrameRef * 	J_Frame::get_frame_ref 	() {
-	return frame_ref;
+J_VideoFrameRef * 	J_Frame::get_depth_frame 	() {
+	return depth_frame;
+}
+
+J_VideoFrameRef * 	J_Frame::get_color_frame	() {
+	return depth_frame;
 }
 
 

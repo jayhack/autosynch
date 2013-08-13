@@ -33,9 +33,9 @@ class J_Frame {
 private:
 
 	/*--- Data ---*/
-	int frame_index;
 	J_Skeleton			* skeleton;
-	J_VideoFrameRef 	* frame_ref;
+	J_VideoFrameRef 	* depth_frame;
+	J_VideoFrameRef		* color_frame;
 
 	/*--- State ---*/
 	bool is_valid;
@@ -44,16 +44,15 @@ public:
 
 	/*--- Constructors ---*/
 	J_Frame ();
-	J_Frame (J_Skeleton *new_skeleton, J_VideoFrameRef *new_frame, int new_frame_index);
+	J_Frame (J_Skeleton *new_skeleton, J_VideoFrameRef *new_depth_frame, J_VideoFrameRef *new_color_frame);
 
 	/*--- Getters ---*/
-	J_Skeleton 			*get_skeleton 	();
-	J_VideoFrameRef 	*get_frame_ref 	();
-
+	J_Skeleton 			*get_skeleton 		();
+	J_VideoFrameRef 	*get_depth_frame 	();
+	J_VideoFrameRef		*get_color_frame	();
 
 	/*--- Misc ---*/
 	bool isValid ();
-		
 
 	/*--- Debugging ---*/
 	void print_data ();

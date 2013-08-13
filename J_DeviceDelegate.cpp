@@ -28,20 +28,44 @@
   */
 J_DeviceDelegate::J_DeviceDelegate () {
 
+	openni::Status rc;
+
  	/*### Step 1: allocate and open the device ###*/
 	device = new openni::Device ();
-	openni::Status rc = device->open(openni::ANY_DEVICE);
+	rc = device->open(openni::ANY_DEVICE);
+
 
 	/*### Step 2: ensure that it was opened successfully ###*/
 	if ( (rc != openni::STATUS_OK) || (!device->isValid ())) {
 		print_error ("Failed to open device", openni::OpenNI::getExtendedError());
 	}
 
+
 	/*### Step 3: allocate and initialize the user tracker, make sure it was opened correctly ###*/
 	user_tracker = new nite::UserTracker ();
 	if (user_tracker->create(device) != nite::STATUS_OK) {
 		print_error ("Could not create the user tracker", "Not sure what to do here...");
 	}
+
+
+	/*### Step 4: set up the color stream as well ###*/
+	rc = color_stream.create(*device, openni::SENSOR_COLOR);
+	if (rc == openni::STATUS_OK) {
+		rc = color_stream.start();
+		if (rc != openni::STATUS_OK) {
+			print_error ("J_DeviceDelegate", "the color stream is not starting");
+			color_stream.destroy();
+		}
+	}
+	else {
+		print_error ("J_DeviceDelegate", "Failed to find color stream");
+	}
+	if (!color_stream.isValid()) {
+		print_error ("J_DeviceDelegate", "the color stream is invalid. shutting down");
+		openni::OpenNI::shutdown();
+	}
+
+
 }
 
 
@@ -67,25 +91,39 @@ J_DeviceDelegate::~J_DeviceDelegate () {
  * NOTE: this will also store the *absolute* coordinates of the skeleton in it. 
  */
 J_Frame * J_DeviceDelegate::readFrame () {
+	cout << "--- readFrame --- "<< endl;
 
 	/*--- temporary objects we will use ---*/
 	nite::UserTrackerFrameRef userTrackerFrame;
-	openni::VideoFrameRef depthFrame;
+	openni::VideoFrameRef ni_depthFrame;
+	openni::VideoFrameRef ni_colorFrame;
 
+
+	/*### Step 1: get the color frame ###*/
+	cout << "	- checking the validity of the color stream" << endl;
+	if (!color_stream.isValid()) {
+		print_error ("J_DeviceDelegate", "the color stream is invalid. shutting down");
+		openni::OpenNI::shutdown();
+	}
+	cout << "	- about to read the actual frame" << endl;
+	color_stream.readFrame (&ni_colorFrame);
+	cout << "	- read the actual frame" << endl;
+	if (!ni_colorFrame.isValid ()) {
+		print_error ("could not get the color frame", "do something about it");
+	}
+	cout << "	- about to read depth frame" << endl;
 	/*### Step 1: get a userTrackerFrame from user_tracker, depth frame ###*/
 	nite::Status rc = user_tracker->readFrame(&userTrackerFrame);
 	if (rc != nite::STATUS_OK) {
 		print_error ("Display", "Could not get a next frame from user_tracker");
 	}
-	depthFrame = userTrackerFrame.getDepthFrame();
+	ni_depthFrame = userTrackerFrame.getDepthFrame();
+
 
 	/*### Step 2: get a J_Skeleton out of it ###*/
 	const nite::Array<nite::UserData>& users = userTrackerFrame.getUsers();
-
-
 	J_Skeleton *skeleton = NULL;
-
-	/*### Note: For now, only deal with a single skeleton ###*/
+	/*### --- Note: For now, only deal with a single skeleton ---###*/
 	if (users.getSize() > 0) {
 
 		const nite::UserData & user = users[0];
@@ -106,10 +144,10 @@ J_Frame * J_DeviceDelegate::readFrame () {
 		skeleton = NULL;
 	}
 
-
 	/*### Step 4: create the actual frame ###*/
-	J_VideoFrameRef *frame_ref = new J_VideoFrameRef (&depthFrame);
-	J_Frame * new_frame = new J_Frame (skeleton, frame_ref, 0);
+	J_VideoFrameRef *j_depth_frame = new J_VideoFrameRef (&ni_depthFrame);
+	J_VideoFrameRef *j_color_frame = new J_VideoFrameRef (&ni_colorFrame);
+	J_Frame * new_frame = new J_Frame (skeleton, j_depth_frame, j_color_frame);
 	return new_frame;
 
 }

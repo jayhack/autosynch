@@ -21,6 +21,7 @@ private:
 
 	openni::Device *device;
 	nite::UserTracker* user_tracker;
+	openni::VideoStream color_stream;
 
 public:
 
