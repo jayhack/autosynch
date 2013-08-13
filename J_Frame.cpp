@@ -79,7 +79,7 @@ J_VideoFrameRef * 	J_Frame::get_depth_frame 	() {
 }
 
 J_VideoFrameRef * 	J_Frame::get_color_frame	() {
-	return depth_frame;
+	return color_frame;
 }
 
 

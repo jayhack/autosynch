@@ -395,8 +395,12 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 
 	/*### Step 1: initialize (allocate) the texture map if has not previously been initialized ###*/
 	if (pixel_texture_map == NULL) {
-		texture_map_x = MIN_CHUNKS_SIZE(depth_frame->getResolutionX(), TEXTURE_SIZE);
-		texture_map_y = MIN_CHUNKS_SIZE(depth_frame->getResolutionY(), TEXTURE_SIZE);
+		// texture_map_x = MIN_CHUNKS_SIZE(depth_frame->getResolutionX(), TEXTURE_SIZE);
+		// texture_map_y = MIN_CHUNKS_SIZE(depth_frame->getResolutionY(), TEXTURE_SIZE);
+		// pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
+
+		texture_map_x = MIN_CHUNKS_SIZE(color_frame->getResolutionX(), TEXTURE_SIZE);
+		texture_map_y = MIN_CHUNKS_SIZE(color_frame->getResolutionY(), TEXTURE_SIZE);
 		pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
 	}
 
@@ -411,16 +415,13 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	calculateHistogram(depth_histogram, MAX_DEPTH, depth_frame);
 
 
-
 	/*### initialize m_pTexMap to zero ###*/
 	int data_size = texture_map_y*texture_map_x*sizeof(openni::RGB888Pixel);
 	memset(pixel_texture_map, 0, data_size);
 
 
-	float factor[3] = {1, 1, 1};
-	/*###[ --- Drawing Users in Special Colors --- ]###*/
-	// check if we need to draw depth frame to texture
-	// if (depth_frame->isValid() && drawer.g_drawDepth) {
+	/*##########[ --- DEPTH FRAME --- ]##########*/
+	// float factor[3] = {1, 1, 1};
 	// if (depth_frame->isValid ()) {
 
 	// 	// const nite::UserId* pLabels = userLabels.getPixels();
@@ -476,7 +477,7 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 
 
 
-	/*##########[ --- COLOR FRAME --- ]##########*/
+	/*####################[ --- COLOR FRAME --- ]####################*/
 	if (color_frame->isValid ()) {
 
 		const openni::RGB888Pixel* pImageRow = (const openni::RGB888Pixel*)color_frame->getData();
@@ -509,8 +510,11 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 
-	g_nXRes = depth_frame->getResolutionX();
-	g_nYRes = depth_frame->getResolutionY();
+	// g_nXRes = depth_frame->getResolutionX();
+	// g_nYRes = depth_frame->getResolutionY();
+
+	g_nXRes = color_frame->getResolutionX();
+	g_nYRes = color_frame->getResolutionY();	
 
 	// upper left
 	glTexCoord2f(0, 0);
