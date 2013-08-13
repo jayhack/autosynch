@@ -188,6 +188,8 @@ void J_StorageDelegate::write_frames (J_VideoFrameRef *depth_frame, J_VideoFrame
 	depth_outfile.open (depth_filename.c_str());
 	color_outfile.open (color_filename.c_str());
 
+	cout << "		### Depth frame outfile: " << depth_filename.c_str () << endl;
+	cout << "		### Color frame outfile: " << color_filename.c_str () << endl;
 
 	/*### Step 2: write the contents to each of them ###*/
 	write_frame (depth_frame, depth_outfile);

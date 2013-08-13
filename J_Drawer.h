@@ -16,6 +16,8 @@
 #include "J_Frame.h"
 
 /*--- Constants ---*/
+#define DRAW_DEPTH 0
+#define DRAW_COLOR 1
 #define GL_WIN_SIZE_X	1280
 #define GL_WIN_SIZE_Y	1024
 #define TEXTURE_SIZE	512
@@ -48,6 +50,7 @@ private:
 	bool g_drawBackground;
 	bool g_drawDepth;
 	bool g_drawFrameId;
+	int draw_mode;
 
 
 	/*--- Drawing Colors ---*/
@@ -97,6 +100,8 @@ public:
 
 
 	/*--- Public Drawing Functions ---*/
+	void draw_depth_frame (J_VideoFrameRef *depth_frame);
+	void draw_color_frame (J_VideoFrameRef *color_frame);
 	void draw_frame (J_Frame * frame);
 
 

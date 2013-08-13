@@ -173,11 +173,11 @@ void NI_Player::onkey (unsigned char key, int x, int y) {
 void NI_Player::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
-	print_status ("Display", "Getting frame");
+	// print_status ("Display", "Getting frame");
 	J_Frame *frame = storage_delegate->read ();
 
 	/*### Step 2: draw it to the screen ###*/
-	print_status ("Display", "Drawing frame");
+	// print_status ("Display", "Drawing frame");
 	drawer.draw_frame (frame);
 
 	/*### Step 3: record it ###*/

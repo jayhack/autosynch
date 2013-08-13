@@ -197,6 +197,7 @@ void NI_Recorder::onkey (unsigned char key, int x, int y) {
 		/*### P: stop recording ###*/
 		case 's':
 			print_status ("Main operation", "Stopped recording");
+			stop_recording ();
 			break;
 	}
 }
@@ -204,11 +205,11 @@ void NI_Recorder::onkey (unsigned char key, int x, int y) {
 void NI_Recorder::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
-	print_status ("Display", "Getting frame");
+	// print_status ("Display", "Getting frame");
 	J_Frame *frame = device_delegate->readFrame ();
 
 	/*### Step 2: draw it to the screen ###*/
-	print_status ("Display", "Drawing frame");
+	// print_status ("Display", "Drawing frame");
 	drawer.draw_frame (frame);
 
 	/*### Step 3: record it ###*/

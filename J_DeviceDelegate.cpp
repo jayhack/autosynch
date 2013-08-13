@@ -100,18 +100,18 @@ J_Frame * J_DeviceDelegate::readFrame () {
 
 
 	/*### Step 1: get the color frame ###*/
-	cout << "	- checking the validity of the color stream" << endl;
+	// cout << "	- checking the validity of the color stream" << endl;
 	if (!color_stream.isValid()) {
 		print_error ("J_DeviceDelegate", "the color stream is invalid. shutting down");
 		openni::OpenNI::shutdown();
 	}
-	cout << "	- about to read the actual frame" << endl;
+	// cout << "	- about to read the actual frame" << endl;
 	color_stream.readFrame (&ni_colorFrame);
-	cout << "	- read the actual frame" << endl;
+	// cout << "	- read the actual frame" << endl;
 	if (!ni_colorFrame.isValid ()) {
 		print_error ("could not get the color frame", "do something about it");
 	}
-	cout << "	- about to read depth frame" << endl;
+	// cout << "	- about to read depth frame" << endl;
 	/*### Step 1: get a userTrackerFrame from user_tracker, depth frame ###*/
 	nite::Status rc = user_tracker->readFrame(&userTrackerFrame);
 	if (rc != nite::STATUS_OK) {
@@ -143,6 +143,7 @@ J_Frame * J_DeviceDelegate::readFrame () {
 	else {
 		skeleton = NULL;
 	}
+
 
 	/*### Step 4: create the actual frame ###*/
 	J_VideoFrameRef *j_depth_frame = new J_VideoFrameRef (&ni_depthFrame);

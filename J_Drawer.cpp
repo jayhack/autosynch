@@ -16,6 +16,9 @@
  */
 J_Drawer::J_Drawer () {
 
+	/*--- initialize draw mode ---*/
+	draw_mode = DRAW_COLOR;
+
 	/*--- initialize colors ---*/
 	Colors[0][0] = 1;
 	Colors[0][1] = 0;
@@ -58,6 +61,12 @@ J_Drawer::J_Drawer () {
 
 	pixel_texture_map = NULL;
 }
+
+
+
+
+
+
 
 
 /*########################################################################################################################*/
@@ -103,6 +112,13 @@ void J_Drawer::calculateHistogram(float* pHistogram, int histogramSize, J_VideoF
 
 
 
+
+
+
+
+
+
+
 /*########################################################################################################################*/
 /*###############################[ --- Drawing Utilities --- ]############################################################*/
 /*########################################################################################################################*/
@@ -137,7 +153,6 @@ void J_Drawer::DrawFrameId(nite::UserTracker* pUserTracker, J_Skeleton *skeleton
 	glRasterPos2i(20, 20);
 	glPrintString(GLUT_BITMAP_HELVETICA_18, buffer);
 }
-
 
 void J_Drawer::DrawCenterOfMass(nite::UserTracker* pUserTracker, const nite::UserData& user) {
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -315,6 +330,12 @@ void J_Drawer::Draw_J_Skeleton (J_Skeleton *skeleton) {
 
 
 
+
+
+
+
+
+
 /*########################################################################################################################*/
 /*###############################[--- Beat/Pop indication functions ---]##################################################*/
 /*########################################################################################################################*/
@@ -379,110 +400,26 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
 }
 
 
+
+
+
+
+
 /*########################################################################################################################*/
 /*###############################[--- Frame Drawing ---]##################################################################*/
 /*########################################################################################################################*/
-/* Function: draw_frame
- * --------------------
- * given a pointer to a frame, this function will draw it on screen.
+/* Function: draw_color_frame
+ * --------------------------
+ * given the color frame, this will draw it in pixel_texture_map
  */
-void J_Drawer::draw_frame (J_Frame *frame) {
+void J_Drawer::draw_color_frame (J_VideoFrameRef *color_frame) {
 
-	/*### Step 0: get the depth/color frames ###*/
-	J_VideoFrameRef *depth_frame = frame->get_depth_frame ();
-	J_VideoFrameRef *color_frame = frame->get_color_frame ();
-
-
-	/*### Step 1: initialize (allocate) the texture map if has not previously been initialized ###*/
-	if (pixel_texture_map == NULL) {
-		// texture_map_x = MIN_CHUNKS_SIZE(depth_frame->getResolutionX(), TEXTURE_SIZE);
-		// texture_map_y = MIN_CHUNKS_SIZE(depth_frame->getResolutionY(), TEXTURE_SIZE);
-		// pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
-
-		texture_map_x = MIN_CHUNKS_SIZE(color_frame->getResolutionX(), TEXTURE_SIZE);
-		texture_map_y = MIN_CHUNKS_SIZE(color_frame->getResolutionY(), TEXTURE_SIZE);
-		pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
-	}
-
-	/*### --- OpenGL Stuff... not sure what this does --- ###*/
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(0, GL_WIN_SIZE_X, GL_WIN_SIZE_Y, 0, -1.0, 1.0);
-
-	/*### if we are drawing the depth map, calculate a histogram ###*/
-	calculateHistogram(depth_histogram, MAX_DEPTH, depth_frame);
-
-
-	/*### initialize m_pTexMap to zero ###*/
-	int data_size = texture_map_y*texture_map_x*sizeof(openni::RGB888Pixel);
-	memset(pixel_texture_map, 0, data_size);
-
-
-	/*##########[ --- DEPTH FRAME --- ]##########*/
-	// float factor[3] = {1, 1, 1};
-	// if (depth_frame->isValid ()) {
-
-	// 	// const nite::UserId* pLabels = userLabels.getPixels();
-
-	// 	const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depth_frame->getData();
-	// 	openni::RGB888Pixel* pTexRow = pixel_texture_map + depth_frame->getCropOriginY() * texture_map_x;
-	// 	int rowSize = depth_frame->getStrideInBytes() / sizeof(openni::DepthPixel);
-
-	// 	for (int y = 0; y < depth_frame->getHeight(); ++y)
-	// 	{
-	// 		const openni::DepthPixel* pDepth = pDepthRow;
-	// 		openni::RGB888Pixel* pTex = pTexRow + depth_frame->getCropOriginX();
-
-	// 		// for (int x = 0; x < depth_frame->getWidth(); ++x, ++pDepth, ++pTex, ++pLabels)
-	// 		for (int x = 0; x < depth_frame->getWidth(); ++x, ++pDepth, ++pTex)
-	// 		{
-	// 			if (*pDepth != 0)
-	// 			{
-	// 				// if (*pLabels == 0)
-	// 				// {
-	// 					if (!g_drawBackground)
-	// 					{
-	// 						factor[0] = factor[1] = factor[2] = 0;
-
-	// 					}
-	// 					else
-	// 					{
-	// 						factor[0] = Colors[colorCount][0];
-	// 						factor[1] = Colors[colorCount][1];
-	// 						factor[2] = Colors[colorCount][2];
-	// 					}
-	// 				// }
-	// 				// else
-	// 				// {
-	// 					// factor[0] = drawer.Colors[*pLabels % drawer.colorCount][0];
-	// 					// factor[1] = drawer.Colors[*pLabels % drawer.colorCount][1];
-	// 					// factor[2] = drawer.Colors[*pLabels % drawer.colorCount][2];
-	// 				// }
-
-	// 				int nHistValue = depth_histogram[*pDepth];
-	// 				pTex->r = nHistValue*factor[0];
-	// 				pTex->g = nHistValue*factor[1];
-	// 				pTex->b = nHistValue*factor[2];
-
-	// 				factor[0] = factor[1] = factor[2] = 1;
-	// 			}
-	// 		}
-
-	// 		pDepthRow += rowSize;
-	// 		pTexRow += texture_map_x;
-	// 	}
-	// }
-
-
-
-	/*####################[ --- COLOR FRAME --- ]####################*/
+	/*### Step 2: if the color_frame is valid, draw it in pixel_texture_map ###*/
 	if (color_frame->isValid ()) {
 
-		const openni::RGB888Pixel* pImageRow = (const openni::RGB888Pixel*)color_frame->getData();
-		openni::RGB888Pixel* pTexRow = pixel_texture_map + color_frame->getCropOriginY() * texture_map_y;
-		int rowSize = color_frame->getStrideInBytes() / sizeof(openni::RGB888Pixel);
+		const openni::RGB888Pixel* pImageRow = (const openni::RGB888Pixel*)color_frame->getData();			//read location
+		openni::RGB888Pixel* pTexRow = pixel_texture_map + color_frame->getCropOriginY() * texture_map_y;	//write location
+		int rowSize = color_frame->getStrideInBytes() / sizeof(openni::RGB888Pixel);						//size of row
 
 		for (int y = 0; y < color_frame->getHeight(); ++y)
 		{
@@ -498,7 +435,155 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 			pTexRow += texture_map_x;
 		}
 	}
+	else {
+		print_error ("J_Drawer", "Color frame not valid - cannot display");
+	}
+}
 
+/* Function: draw_depth_frame
+ * --------------------------
+ * given the depth frame, this will draw it in pixel_texture_map
+ */
+void J_Drawer::draw_depth_frame (J_VideoFrameRef *depth_frame) {
+
+
+	/*### Step 1: initialize pixel_texture_map if necessary ###*/
+	if (pixel_texture_map == NULL) {
+		texture_map_x = MIN_CHUNKS_SIZE(depth_frame->getResolutionX(), TEXTURE_SIZE);
+		texture_map_y = MIN_CHUNKS_SIZE(depth_frame->getResolutionY(), TEXTURE_SIZE);
+		pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
+	}
+
+
+	/*### Step 2: calculate depth_histogram ###*/
+	calculateHistogram(depth_histogram, MAX_DEPTH, depth_frame);
+
+
+
+	/*### Step 3: if the depth frame is valid, draw it in pixel_texture_map ###*/
+	float factor[3] = {1, 1, 1};
+	if (depth_frame->isValid ()) {
+
+		// const nite::UserId* pLabels = userLabels.getPixels();
+
+		const openni::DepthPixel* pDepthRow = (const openni::DepthPixel*)depth_frame->getData();
+		openni::RGB888Pixel* pTexRow = pixel_texture_map + depth_frame->getCropOriginY() * texture_map_x;
+		int rowSize = depth_frame->getStrideInBytes() / sizeof(openni::DepthPixel);
+
+		for (int y = 0; y < depth_frame->getHeight(); ++y)
+		{
+			const openni::DepthPixel* pDepth = pDepthRow;
+			openni::RGB888Pixel* pTex = pTexRow + depth_frame->getCropOriginX();
+
+			// for (int x = 0; x < depth_frame->getWidth(); ++x, ++pDepth, ++pTex, ++pLabels)
+			for (int x = 0; x < depth_frame->getWidth(); ++x, ++pDepth, ++pTex)
+			{
+				if (*pDepth != 0)
+				{
+					// if (*pLabels == 0)
+					// {
+						if (!g_drawBackground)
+						{
+							factor[0] = factor[1] = factor[2] = 0;
+
+						}
+						else
+						{
+							factor[0] = Colors[colorCount][0];
+							factor[1] = Colors[colorCount][1];
+							factor[2] = Colors[colorCount][2];
+						}
+					// }
+					// else
+					// {
+						// factor[0] = drawer.Colors[*pLabels % drawer.colorCount][0];
+						// factor[1] = drawer.Colors[*pLabels % drawer.colorCount][1];
+						// factor[2] = drawer.Colors[*pLabels % drawer.colorCount][2];
+					// }
+
+					int nHistValue = depth_histogram[*pDepth];
+					pTex->r = nHistValue*factor[0];
+					pTex->g = nHistValue*factor[1];
+					pTex->b = nHistValue*factor[2];
+
+					factor[0] = factor[1] = factor[2] = 1;
+				}
+			}
+
+			pDepthRow += rowSize;
+			pTexRow += texture_map_x;
+		}
+	}
+
+	return;
+}
+
+
+/* Function: draw_frame
+ * --------------------
+ * given a pointer to a frame, this function will draw it on screen.
+ */
+void J_Drawer::draw_frame (J_Frame *frame) {
+
+	/*### Step 1: get the depth/color frames ###*/
+	J_VideoFrameRef *depth_frame = frame->get_depth_frame ();
+	J_VideoFrameRef *color_frame = frame->get_color_frame ();
+
+	/*### Step 2: initialize pixel_texture_map if necessary ###*/
+	if (pixel_texture_map == NULL) {
+
+		if (draw_mode == DRAW_DEPTH) {
+			texture_map_x = MIN_CHUNKS_SIZE(depth_frame->getResolutionX(), TEXTURE_SIZE);
+			texture_map_y = MIN_CHUNKS_SIZE(depth_frame->getResolutionY(), TEXTURE_SIZE);
+			pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
+		}
+		else if (draw_mode == DRAW_COLOR) {
+			texture_map_x = MIN_CHUNKS_SIZE(color_frame->getResolutionX(), TEXTURE_SIZE);
+			texture_map_y = MIN_CHUNKS_SIZE(color_frame->getResolutionY(), TEXTURE_SIZE);
+			pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
+		}
+		else {
+			print_error ("J_Drawer", "Draw mode not recognized");
+		}
+	}
+
+
+	/*### Step 3: OpenGL Stuff... not sure what this does --- ###*/
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, GL_WIN_SIZE_X, GL_WIN_SIZE_Y, 0, -1.0, 1.0);
+
+
+	/*### Step 4: clear pixel_texture_map to zero ###*/
+	int data_size = texture_map_y*texture_map_x*sizeof(openni::RGB888Pixel);
+	memset(pixel_texture_map, 0, data_size);
+
+
+	/*### Step 5: draw the color/depth map ###*/
+	if (draw_mode == DRAW_DEPTH) {
+		// print_status ("J_Drawer", "Drawing depth frame");
+		draw_depth_frame (depth_frame);
+		g_nXRes = depth_frame->getResolutionX();
+		g_nYRes = depth_frame->getResolutionY();
+	}
+	else if (draw_mode == DRAW_COLOR) {
+		// print_status ("J_Drawer", "Drawing color frame");
+		draw_color_frame (color_frame);
+		g_nXRes = color_frame->getResolutionX();
+		g_nYRes = color_frame->getResolutionY();	
+	}
+	else {
+		// print_error ("J_Drawer", "Draw mode not recognized");
+	}
+
+	// cout << "color_frame height, width = " << color_frame->getHeight () << ", " << color_frame->getWidth () << endl;
+	// cout << "depth_frame height, width = " << depth_frame->getHeight () << ", " << depth_frame->getWidth () << endl;	
+ 
+	// cout << "texture_map_x, y = " << texture_map_x << ", " << texture_map_y << endl;
+	// cout << "g_nXRes, g_nYRes = " << g_nXRes << ", " << g_nYRes << endl;
+	/*### Step 6: get ready to display it ###*/
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -509,12 +594,6 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-
-	// g_nXRes = depth_frame->getResolutionX();
-	// g_nYRes = depth_frame->getResolutionY();
-
-	g_nXRes = color_frame->getResolutionX();
-	g_nYRes = color_frame->getResolutionY();	
 
 	// upper left
 	glTexCoord2f(0, 0);
@@ -532,14 +611,16 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	
+
+
 	/*### Finally - draw the skeleton ###*/
 	J_Skeleton *skeleton = frame->get_skeleton ();
 	if (skeleton != NULL) {
 		Draw_J_Skeleton (skeleton);
 	}
-	else {
-		cout << ">>> SKELETON NOT VALID <<<" << endl;
-	}
+	// else {
+		// cout << ">>> SKELETON NOT VALID <<<" << endl;
+	// }
 
 	/*### Swap buffers (display) ###*/
 	glutSwapBuffers ();
