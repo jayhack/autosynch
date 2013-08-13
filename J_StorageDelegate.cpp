@@ -352,7 +352,7 @@ J_VideoFrameRef * J_StorageDelegate::read_frame_ref() {
 	frame_ref->setValid (true);
 
 	getline (jvid_infile, line); //------- DATA ------
-
+	cout << line.c_str () << endl;
 
 	/*### Step 3: allocate and write the data ###*/
 	frame_ref->allocate_for_data ();
@@ -381,6 +381,9 @@ J_Frame * J_StorageDelegate::read_frame () {
 
 	/*### Step 3: make the frame and return it ###*/
 	J_Frame * frame = new J_Frame (skeleton, frame_ref, 0);
+
+	/*### Step 4: update the current frame number ###*/
+	current_frame_number++;
 
 	return frame;
  }
