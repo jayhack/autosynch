@@ -26,16 +26,13 @@ SYNCHRONIZE_MODE = 4
 mode_map = {
 	'r': RECORD_MODE,
 	'p': PLAY_MODE,
-	'b': MARK_BEATS_MODE,
-	'm': MARK_POPS_MODE,
 	's': SYNCHRONIZE_MODE,
 }
 
 play_options_map = {
-	'r': 'Raw',
-	'b': 'Marked/skeleton_just_beats.skel',
-	'p': 'Marked/skeleton.skel',
-	's': 'Synced/skeleton.skel'
+	'r': 'raw',
+	'm': 'marked',
+	's': 'synced'
 }
 
 
@@ -67,29 +64,24 @@ if __name__ == "__main__":
 	parser = OptionParser ()
 	#--- [-f filename]: specifies where to play from/record to ---
 	parser.add_option("-f", "--filename", action="store", type="string", dest="filename")
-	#--- [(-r|-p|-s)]: play or record mode ---
+	#--- [(-r|-p|-s)]: (play|record|synchronize) mode ---
 	parser.add_option ("-r", "--record", 		action="store_const", const=RECORD_MODE,		dest="mode", help="Instructs the program to make a new recording")
 	parser.add_option ("-p", "--play",			action="store_const", const=PLAY_MODE, 			dest="mode", help="Instructs the program to play a certain file; also allows you to mark the file")
-	parser.add_option ("-b", "--mark_beats", 	action="store_const", const=MARK_BEATS_MODE, 	dest="mode", help="Instructs the program to play a file and mark the beats for you")
-	parser.add_option ("-m", "--mark_pops", 	action="store_const", const=MARK_POPS_MODE, 	dest="mode", help="Instructs the program to play a file and allow you to mark pops.")
 	parser.add_option ("-s", "--synchronize", 	action="store_const", const=SYNCHRONIZE_MODE, 	dest="mode", help="Instructs the program to perform synchronization on the recording")
 	(options, args) = parser.parse_args (sys.argv)
 
-
 	### Step 2: Get mode ###
 	if options.mode == None:
-		selected_mode = raw_input ("--- AVAILABLE MODES ---\n- r = record \n- p = play\n- s = synchronize\n- b = mark beats\n- m = mark pops\nEnter a mode: ")
+		selected_mode = raw_input ("--- AVAILABLE MODES ---\n- r = record \n- p = play\n- s = synchronize\nEnter a mode: ")
 		if not selected_mode in mode_map.keys ():
 			print_error ("Dafuq was that", "Enter one of the options listed above, breh")
 		else:
 			options.mode = mode_map[selected_mode]
 
-
 	### Step 3: Get filenames ###
 	if options.filename == None:
 		selected_filename = raw_input ("Enter the name of a recording:\n(new one if you are recording, existing one otherwise): ")
 		options.filename = selected_filename
-
 
 	### Step 4: make sure filename is valid for this operation ###
 	sync_dir_path = os.path.join (os.path.join (recordings_dir, options.filename + ".sync"))
@@ -103,11 +95,22 @@ if __name__ == "__main__":
 			print_error ("the filename you entered does not exist", "gotta record that shit first, breh")
 
 
+
+
+
+
+
+
 	### Step 5: get the arguments to pass to the C++ program ###
 	print_status ("CLI", "starting program")
 	system_command = None
+
+	##########[ --- RECORD MODE --- ]#####  
 	if options.mode == RECORD_MODE:	
-		cpp_args = ['record', sync_dir_path]
+		read_dir = 'xxx'	#read from nowhere (dummy value)
+		write_dir = 'raw'	#write to raw
+
+		cpp_args = ['record', sync_dir_path, read_dir, write_dir]
 		os.chdir (os.path.join(os.getcwd(), "Bin"))
 		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)
 
@@ -115,23 +118,18 @@ if __name__ == "__main__":
 
 		### Query what to play ###
 		play_file_name = None
-		selected_file = raw_input ("Which file would you like to play?\n- r = raw\n- b = just beats marked\n- p = both beats and pops marked\n- s = synchronized\nFile choice: ")
+		selected_file = raw_input ("Which file would you like to play?\n- r = raw\n- m = marked\n- s = synchronized\nFile choice: ")
 		if not selected_file in play_options_map:
-			print_error ("Dafuq was that", "enter one of the above options")
+			print_error ("Invalid file", "enter one of the above options")
+		else:
+			read_file 	= play_options_map [selected_file]
+			write_file 	= play_options_map ['m']
 
-		cpp_args = ['play', sync_dir_path];
+		cpp_args = ['play', sync_dir_path, read_file, write_file];
 		os.chdir (os.path.join(os.getcwd(), "Bin"))
 		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)
 
-	elif options.mode == MARK_BEATS_MODE:
-		cpp_args = ['play', os.path.join(sync_dir_path, "Raw/skeleton.skel"), os.path.join(sync_dir_path, "Marked/skeleton_just_beats.skel"), os.path.join (sync_dir_path, "Raw/video.oni")]
-		os.chdir (os.path.join (os.getcwd(), "Bin"))
-		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)	
 
-	elif options.mode == MARK_POPS_MODE:
-		cpp_args = ['play', os.path.join(sync_dir_path, "Marked/skeleton_just_beats.skel"), os.path.join(sync_dir_path, "Marked/skeleton.skel"), os.path.join (sync_dir_path, "Raw/video.oni")]		
-		os.chdir (os.path.join (os.getcwd(), "Bin"))
-		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)	
 
 	elif options.mode == SYNCHRONIZE_MODE:
 		python_args = [	os.path.join (sync_dir_path, "Marked/skeleton_just_beats.skel"), 	#just the beats

@@ -58,6 +58,8 @@ protected:
 
 public:
 
+
+
 	/*--- Constructor - won't be inherited ---*/
 	NI_App ();
 

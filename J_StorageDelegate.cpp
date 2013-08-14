@@ -41,24 +41,40 @@ using namespace std;
  */
 J_StorageDelegate::J_StorageDelegate () {}
 J_StorageDelegate::J_StorageDelegate (	const char *selected_file_path, 		//filepath to the .sync directory
-										int new_read_recording_stage,			//stage we will read from
-										int new_write_recording_stage): 		//stage we will write to
+										const char *new_read_stage,				//stage we will read from
+										const char *new_write_stage):
 
 										filename_manager (selected_file_path) 
 {
 
+	/*### Step 1: fill in read/write recording stages ###*/
 	print_status ("Initialization", "Setting paramters");
 	current_frame_number = 0;
-	read_recording_stage = new_read_recording_stage;
-	write_recording_stage = new_write_recording_stage;
+	if 			(strcmp(new_read_stage, "raw") == 0) 		read_recording_stage = RAW;
+	else if 	(strcmp(new_read_stage, "marked") == 0) 	read_recording_stage = MARKED;
+	else if 	(strcmp(new_read_stage, "synced") == 0)		read_recording_stage = SYNCED;
+	else if 	(strcmp(new_read_stage, "xxx") == 0) 		read_recording_stage = -1;
+	else 		print_error ("J_StorageDelegate", "Read stage name not recognized");
+	if 			(strcmp(new_write_stage, "raw") == 0) 		write_recording_stage = RAW;
+	else if 	(strcmp(new_write_stage, "marked") == 0) 	write_recording_stage = MARKED;
+	else if 	(strcmp(new_write_stage, "synced") == 0)	write_recording_stage = SYNCED;
+	else if 	(strcmp(new_write_stage, "xxx") == 0)		write_recording_stage = -1;
+	else 		print_error ("J_StorageDelegate", "Write stage name not recognized");
 
+
+	/*### Step 2: open the skeleton reading/writing files ###*/
 	print_status ("Initialization", "Opening skeleton file(s)");
-	const char *skeleton_infilename 	= filename_manager.get_filename (read_recording_stage, SKEL_FILE);
-	const char *skeleton_outfilename	= filename_manager.get_filename (write_recording_stage, SKEL_FILE);
-	cout << "		Skeleton infile: " << skeleton_infilename << endl;
-	cout << "		Skeleton outfile: " << skeleton_outfilename << endl;
-	skel_infile.open (skeleton_infilename);
-	skel_outfile.open (skeleton_outfilename);
+	if (read_recording_stage != -1) {
+		const char *skeleton_infilename 	= filename_manager.get_filename (read_recording_stage, SKEL_FILE);
+		cout << "		Skeleton infile: " << skeleton_infilename << endl;
+		skel_infile.open(skeleton_infilename);
+	}
+	if (write_recording_stage != -1) {
+		const char *skeleton_outfilename	= filename_manager.get_filename (write_recording_stage, SKEL_FILE);
+		cout << "		Skeleton outfile: " << skeleton_outfilename << endl;
+		skel_outfile.open (skeleton_outfilename);	
+	}
+
 }
 J_StorageDelegate::~J_StorageDelegate () {
 
@@ -181,8 +197,8 @@ void J_StorageDelegate::write_frames (J_VideoFrameRef *depth_frame, J_VideoFrame
 
 	/*### Step 1: open the outfiles ###*/
 	/*### NOTE: change this from just 'RAW' later on ###*/
-	string depth_filename = get_next_depth_filepath (RAW); 
-	string color_filename = get_next_color_filepath (RAW);
+	string depth_filename = get_next_depth_filepath (write_recording_stage); 
+	string color_filename = get_next_color_filepath (write_recording_stage);
 	ofstream depth_outfile;
 	ofstream color_outfile;
 	depth_outfile.open (depth_filename.c_str());
@@ -393,8 +409,8 @@ J_VideoFrameRef * J_StorageDelegate::read_frame (ifstream &infile) {
 vector <J_VideoFrameRef*> J_StorageDelegate::read_frames() {
 
 	/*### Step 1: open the infiles ###*/
-	string depth_filename = get_next_depth_filepath (RAW); 
-	string color_filename = get_next_color_filepath (RAW);
+	string depth_filename = get_next_depth_filepath (read_recording_stage); 
+	string color_filename = get_next_color_filepath (read_recording_stage);
 	ifstream depth_infile;
 	ifstream color_infile;
 	depth_infile.open (depth_filename.c_str());

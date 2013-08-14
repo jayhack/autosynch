@@ -40,7 +40,7 @@ NI_Player* NI_Player::self = NULL;
  * ---------------------
  * initializes all forms of recording, though does not start writing to output
  */
-NI_Player::NI_Player (const char* file_path, int argc, char** argv) {
+NI_Player::NI_Player (const char* file_path, const char* read_dir, const char* write_dir, int argc, char** argv) {
 	self = this;
 
 	/*### Step 1: initialize the APIs ###*/
@@ -53,8 +53,9 @@ NI_Player::NI_Player (const char* file_path, int argc, char** argv) {
 
 	/*### Step 3: initialize the storage delegate ###*/
 	print_status ("Initialization (Player)", "Creating Storage Delegate");
-	storage_delegate = new J_StorageDelegate (file_path, RAW, MARKED);
+	storage_delegate = new J_StorageDelegate (file_path, read_dir, write_dir);
 
+	stop_recording ();
 	print_status ("Initialization (Player)", "Complete");	
 
 }
@@ -155,14 +156,28 @@ void NI_Player::onkey (unsigned char key, int x, int y) {
 			// Finalize();
 			exit (1);
 
+
+		/*### R: starts recording ###*/
+		case 'r': 
+			print_status ("Main operation", "Started recording");
+			start_recording ();
+			break;
+
+
+		/*### S: stops recording ###*/
+		case 's':
+			print_status ("Main operation", "Stopped recording");
+
+
 		/*### B: label frame as beat ###*/
 		case 'b':
 			print_status ("Main operation", "Labelled beat");
-			//do something to label the beat here!
+			// do something to label the beat here!
 			break;	
 
+
 		/*### P: label frame as pop ###*/
-		case 's':
+		case 'p':
 			print_status ("Main operation", "Labelled pop");
 			//do something to label the pop here!
 			break;
@@ -181,9 +196,9 @@ void NI_Player::display () {
 	drawer.draw_frame (frame);
 
 	/*### Step 3: record it ###*/
-	// if (isRecording ()) {
-	// storage_delegate->write_frame (frame);
-	// }
+	if (isRecording ()) {
+		storage_delegate->write (frame);
+	}
 
 	/*### Step 3: free all memory dedicated to the frame ###*/
 	delete frame;
@@ -202,6 +217,29 @@ openni::Status NI_Player::Run() {
 
 
 
+
+
+/*########################################################################################################################*/
+/*###############################[--- Recording Manipulation ---] ########################################################*/
+/*########################################################################################################################*/
+/* Function: is_recording
+ * ----------------------
+ * returns wether we are recording or not
+ */
+bool NI_Player::isRecording () {
+	return is_recording;
+}
+
+/* Function: (start|stop)_recording
+ * -------------------------
+ * starts/stops the recording
+ */
+void NI_Player::start_recording () {
+	is_recording = true;
+}
+void NI_Player::stop_recording () {
+	is_recording = false;
+}
 
 
 

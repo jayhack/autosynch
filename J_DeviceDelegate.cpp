@@ -91,7 +91,6 @@ J_DeviceDelegate::~J_DeviceDelegate () {
  * NOTE: this will also store the *absolute* coordinates of the skeleton in it. 
  */
 J_Frame * J_DeviceDelegate::readFrame () {
-	cout << "--- readFrame --- "<< endl;
 
 	/*--- temporary objects we will use ---*/
 	nite::UserTrackerFrameRef userTrackerFrame;

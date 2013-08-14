@@ -63,7 +63,7 @@ public:
 
 	/*--- Constructor/Destructor ---*/
 	J_StorageDelegate 		();
-	J_StorageDelegate 		(const char *selected_file_path, int new_read_recording_stage=RAW, int new_write_recording_stage=MARKED);
+	J_StorageDelegate 		(const char *selected_file_path, const char* new_read_stage, const char* new_write_stage);
 	~J_StorageDelegate 		();
 
 	/*--- Misc ---*/

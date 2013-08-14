@@ -44,7 +44,10 @@ private:
 	J_DeviceDelegate *device_delegate;
 
 	/*--- Recording Stats ---*/
-	bool is_recording;
+	bool is_recording;	
+	bool isRecording ();
+	void start_recording ();
+	void stop_recording ();
 
 	/*--- OpenGL Static Functions ---*/
 	static void glut_keyboard 		(unsigned char key, int x, int y);
@@ -64,13 +67,8 @@ public:
 
 
 	/*--- Constructor/Destructor ---*/
-	NI_Recorder 	(const char* file_path, int argc, char** argv);
+	NI_Recorder 	(const char* file_path, const char* read_dir, const char* write_dir, int argc, char** argv);
 	~NI_Recorder 	();
-
-	/*--- Controls ---*/
-	void start_recording ();
-	void stop_recording ();
-	bool isRecording ();
 
 
 	/*--- Getting user state, etc ---*/

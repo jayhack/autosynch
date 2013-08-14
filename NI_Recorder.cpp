@@ -40,7 +40,7 @@ NI_Recorder* NI_Recorder::self = NULL;
  * ---------------------
  * initializes all forms of recording, though does not start writing to output
  */
-NI_Recorder::NI_Recorder (const char* file_path, int argc, char** argv) {
+NI_Recorder::NI_Recorder (const char* file_path, const char *read_dir, const char* write_dir, int argc, char** argv) {
 	self = this;
 
 	/*### Step 1: initialize the APIs ###*/
@@ -57,7 +57,7 @@ NI_Recorder::NI_Recorder (const char* file_path, int argc, char** argv) {
 
 	/*### Step 3: initialize the storage delegate ###*/
 	print_status ("Initialization (Recorder)", "Creating Storage Delegate");
-	storage_delegate = new J_StorageDelegate (file_path, MARKED, RAW);
+	storage_delegate = new J_StorageDelegate (file_path, read_dir, write_dir);
 
 	/*### Step 3: initialize recording to false ###*/
 	stop_recording ();
@@ -76,7 +76,6 @@ NI_Recorder::~NI_Recorder () {
 	/*### Step 2: free all memory allocatd for the device delegate ###*/
 	print_status ("Finalization (Recorder)", "Deleting storage delegate");
 	delete storage_delegate;
-
 }
 
 
@@ -141,29 +140,6 @@ void NI_Recorder::glut_keyboard(unsigned char key, int x, int y) {
 	NI_Recorder::self->onkey(key, x, y);
 }
 
-
-
-/*########################################################################################################################*/
-/*###############################[--- Recording Manipulation ---] ########################################################*/
-/*########################################################################################################################*/
-/* Function: is_recording
- * ----------------------
- * returns wether we are recording or not
- */
-bool NI_Recorder::isRecording () {
-	return is_recording;
-}
-
-/* Function: (start|stop)_recording
- * -------------------------
- * starts/stops the recording
- */
-void NI_Recorder::start_recording () {
-	is_recording = true;
-}
-void NI_Recorder::stop_recording () {
-	is_recording = false;
-}
 
 
 
@@ -233,6 +209,27 @@ openni::Status NI_Recorder::Run() {
 
 
 
+/*########################################################################################################################*/
+/*###############################[--- Recording Manipulation ---] ########################################################*/
+/*########################################################################################################################*/
+/* Function: is_recording
+ * ----------------------
+ * returns wether we are recording or not
+ */
+bool NI_Recorder::isRecording () {
+	return is_recording;
+}
+
+/* Function: (start|stop)_recording
+ * -------------------------
+ * starts/stops the recording
+ */
+void NI_Recorder::start_recording () {
+	is_recording = true;
+}
+void NI_Recorder::stop_recording () {
+	is_recording = false;
+}
 
 
 
