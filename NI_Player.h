@@ -46,6 +46,16 @@ private:
 	void start_recording ();
 	void stop_recording ();
 
+	/*--- Labelling ---*/
+	bool beat_just_occurred;
+	bool pop_just_occurred;
+	void setBeat ();
+	void clearBeat ();
+	bool getBeat ();
+	void setPop ();
+	void clearPop ();
+	bool getPop ();
+
 	/*--- OpenGL Static Functions ---*/
 	static void glut_keyboard 		(unsigned char key, int x, int y);
 	static void glut_display 		();
@@ -63,7 +73,7 @@ public:
 
 
 	/*--- Constructor/Destructor ---*/
-	NI_Player 	(const char* file_path, const char* read_dir, const char* write_dir, int argc, char** argv);
+	NI_Player 	(const char* file_path, int mode, int argc, char** argv);
 	~NI_Player 	();
 
 

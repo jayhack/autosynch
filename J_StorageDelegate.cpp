@@ -41,48 +41,49 @@ using namespace std;
  */
 J_StorageDelegate::J_StorageDelegate () {}
 J_StorageDelegate::J_StorageDelegate (	const char *selected_file_path, 		//filepath to the .sync directory
-										const char *new_read_stage,				//stage we will read from
-										const char *new_write_stage):
+										int selected_mode):
 
 										filename_manager (selected_file_path) 
 {
 
-	/*### Step 1: fill in read/write recording stages ###*/
-	print_status ("Initialization", "Setting paramters");
-	current_frame_number = 0;
-	if 			(strcmp(new_read_stage, "raw") == 0) 		read_recording_stage = RAW;
-	else if 	(strcmp(new_read_stage, "marked") == 0) 	read_recording_stage = MARKED;
-	else if 	(strcmp(new_read_stage, "synced") == 0)		read_recording_stage = SYNCED;
-	else if 	(strcmp(new_read_stage, "xxx") == 0) 		read_recording_stage = -1;
-	else 		print_error ("J_StorageDelegate", "Read stage name not recognized");
-	if 			(strcmp(new_write_stage, "raw") == 0) 		write_recording_stage = RAW;
-	else if 	(strcmp(new_write_stage, "marked") == 0) 	write_recording_stage = MARKED;
-	else if 	(strcmp(new_write_stage, "synced") == 0)	write_recording_stage = SYNCED;
-	else if 	(strcmp(new_write_stage, "xxx") == 0)		write_recording_stage = -1;
-	else 		print_error ("J_StorageDelegate", "Write stage name not recognized");
+	print_status ("J_StorageDelegate", "Setting paramters");
+	current_read_index = 0;
+	current_write_index = 0;
+
+	/*### Step 1: parse the mode ###*/
+	print_status ("J_StorageDelegate", "Parsing mode");
 
 
-	/*### Step 2: open the skeleton reading/writing files ###*/
-	print_status ("Initialization", "Opening skeleton file(s)");
-	if (read_recording_stage != -1) {
-		const char *skeleton_infilename 	= filename_manager.get_filename (read_recording_stage, SKEL_FILE);
-		cout << "		Skeleton infile: " << skeleton_infilename << endl;
-		skel_infile.open(skeleton_infilename);
+	if (selected_mode == RECORD_MODE) {
+
+		in_directory.assign ("");
+		out_directory.assign(filename_manager.get_filename(RAW, JVID_FILE));
+
 	}
-	if (write_recording_stage != -1) {
-		const char *skeleton_outfilename	= filename_manager.get_filename (write_recording_stage, SKEL_FILE);
-		cout << "		Skeleton outfile: " << skeleton_outfilename << endl;
-		skel_outfile.open (skeleton_outfilename);	
+	else if (selected_mode == MARK_MODE) {
+		in_directory.assign (filename_manager.get_filename 	(RAW, JVID_FILE));
+		out_directory.assign(filename_manager.get_filename	(MARKED, JVID_FILE));	
 	}
+	else if (selected_mode == OBSERVE_MARKED_MODE) {
+		in_directory.assign (filename_manager.get_filename 	(MARKED, JVID_FILE));
+		out_directory.assign(filename_manager.get_filename	(SYNCED, JVID_FILE));	
+	}
+	else if (selected_mode == OBSERVE_SYNCHRONIZED_MODE) {
+		in_directory.assign (filename_manager.get_filename(SYNCED, JVID_FILE));
+		out_directory.assign ("");
+	}
+	else {
+		print_error ("J_StorageDelegate", "could not parse the mode you entered");
+		cout << "(mode = " << selected_mode << endl;
+	}
+
+	print_status("J_StorageDelegate - in_directory", in_directory.c_str());	
+	print_status("J_StorageDelegate - out_directory", out_directory.c_str());		
+
+
 
 }
-J_StorageDelegate::~J_StorageDelegate () {
-
-	/*### Step 1: close all files we were reading from/writing to ###*/
-	skel_infile.close ();
-	skel_outfile.close ();
-
-}
+J_StorageDelegate::~J_StorageDelegate () {}
 
 
 
@@ -91,46 +92,51 @@ J_StorageDelegate::~J_StorageDelegate () {
 /*########################################################################################################################*/
 /*###############################[--- Writing ---] ###############################################################*/
 /*########################################################################################################################*/
-/* Function: get_next_(depth|color)_filepath
+/* Function: get_next_filepaths
  * --------------------------------
- * determines where the next (depth|color) file should go and returns a string
- * that is its entire filepath
+ * returns a vector containing strings in the following order:
+ * (skeleton filepath, depth filepath, color filepath)
+ * pass in READ or WRITE to get the appropriate filepaths
  */
-string J_StorageDelegate::get_next_depth_filepath (int recording_stage) {
+vector<string> J_StorageDelegate::get_next_filepaths (int read_or_write) {
 
-	string jvid_directory;
-	jvid_directory.assign(filename_manager.get_filename (recording_stage, JVID_FILE));
+	stringstream skeleton_filepath;
+	stringstream depth_filepath;
+	stringstream color_filepath;
+	if (read_or_write == READ) {
+		skeleton_filepath 	<< in_directory << "/" << current_read_index << ".s";
+		depth_filepath 		<< in_directory << "/" << current_read_index << ".d";
+		color_filepath 		<< in_directory << "/" << current_read_index << ".c";
+	}
+	else if (read_or_write == WRITE) {
+		skeleton_filepath 	<< out_directory << "/" << current_write_index << ".s";
+		depth_filepath 		<< out_directory << "/" << current_write_index << ".d";
+		color_filepath 		<< out_directory << "/" << current_write_index << ".c";
+	}
 
-	stringstream next_filepath;
-	next_filepath << jvid_directory << "/" << current_frame_number << ".d";
-	return next_filepath.str();
-}
-string J_StorageDelegate::get_next_color_filepath (int recording_stage) {
-
-	string jvid_directory;
-	jvid_directory.assign(filename_manager.get_filename (recording_stage, JVID_FILE));
-
-	stringstream next_filepath;
-	next_filepath << jvid_directory << "/" << current_frame_number << ".c";
-	return next_filepath.str();
+	vector<string> next_filepaths;
+	next_filepaths.push_back (skeleton_filepath.str());
+	next_filepaths.push_back (depth_filepath.str());
+	next_filepaths.push_back (color_filepath.str());
+	return next_filepaths;
 }
 
 /* Function: write_skeleton
  * ------------------------
  * writes the specified J_Skeleton to the .skel outfile.
  */
-void J_StorageDelegate::write_skeleton (J_Skeleton * skeleton) {
+void J_StorageDelegate::write_skeleton (J_Skeleton * skeleton, ofstream &outfile) {
 
 	/*### Step 1: Skeleton id ###*/
-	skel_outfile << "##### " << current_frame_number << " #####" << endl;
+	outfile << "##### " << current_write_index << " #####" << endl;
 
 	/*### Step 2: if no skeleton exists, then get out of there ###*/
 	if (skeleton == NULL) {
-		skel_outfile << "----- exists: 0 -----" << endl << endl;
+		outfile << "----- exists: 0 -----" << endl << endl;
 		return;
 	}
 	else {
-		skel_outfile << "----- exists: 1 -----" << endl;
+		outfile << "----- exists: 1 -----" << endl;
 
 		/*### Step 2: joints ###*/
 		for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
@@ -140,8 +146,8 @@ void J_StorageDelegate::write_skeleton (J_Skeleton * skeleton) {
 			nite::Point3f position = current_joint->getPosition ();
 			nite::Point3f position_absolute = current_joint->getPositionAbsolute ();
 
-			skel_outfile << i << ": (" << position.x << ", " << position.y << ", " << position.z << ") | ";
-			skel_outfile << 		"( " << position_absolute.x << ", " << position_absolute.y << ", " << position_absolute.z << ")" << endl;
+			outfile << i << ": (" << position.x << ", " << position.y << ", " << position.z << ") | ";
+			outfile << 		"( " << position_absolute.x << ", " << position_absolute.y << ", " << position_absolute.z << ")" << endl;
 
 		}
 
@@ -149,25 +155,23 @@ void J_StorageDelegate::write_skeleton (J_Skeleton * skeleton) {
 		bool pop = skeleton->getPop ();
 
 		/*### Step 3: beat ###*/
-		if (beat) 	skel_outfile << "----- beat: 1 -----" << endl;
-		else 		skel_outfile << "----- beat: 0 -----" << endl;
+		if (beat) 	outfile << "----- beat: 1 -----" << endl;
+		else 		outfile << "----- beat: 0 -----" << endl;
 
 		/*### Step 4: pop ###*/
-		if (pop) 	skel_outfile << "----- pop: 1 -----" << endl;
-		else 		skel_outfile << "----- pop: 0 -----" << endl;
+		if (pop) 	outfile << "----- pop: 1 -----" << endl;
+		else 		outfile << "----- pop: 0 -----" << endl;
 
 		/*### Step 5: trailing newline ###*/
-		skel_outfile << endl;
+		outfile << endl;
 	}
 }
 
-
-/* Function: write_frame
+/* Function: write_frame_ref
  * ------------------------------
- * writes all data that is proprietary of all J_VideoFrameRefs to the specified
- * outfile
+ * writes all data contained in the frame_ref to the specified outfile
  */
-void J_StorageDelegate::write_frame (J_VideoFrameRef *frame_ref, ofstream &outfile) {
+void J_StorageDelegate::write_frame_ref (J_VideoFrameRef *frame_ref, ofstream &outfile) {
 	
 	/*### Step 1: write parameters ###*/
 	outfile << "resolution_x: "		<< frame_ref->getResolutionX () << endl;
@@ -193,58 +197,51 @@ void J_StorageDelegate::write_frame (J_VideoFrameRef *frame_ref, ofstream &outfi
  * -------------------------
  * writes the specified J_VideoFrameRef to the .jvid file
  */
-void J_StorageDelegate::write_frames (J_VideoFrameRef *depth_frame, J_VideoFrameRef *color_frame) {
+void J_StorageDelegate::write (J_Frame *frame) {
 
-	/*### Step 1: open the outfiles ###*/
-	/*### NOTE: change this from just 'RAW' later on ###*/
-	string depth_filename = get_next_depth_filepath (write_recording_stage); 
-	string color_filename = get_next_color_filepath (write_recording_stage);
+	print_status ("J_StorageDelegate", "Writing frame");
+
+	/*### Step 1: sanitize the frame ###*/
+	if (!frame->isValid ()) print_error ("J_StorateDelegate::write_frame error", "you passed in an invalid J_Frame");
+	J_Skeleton 			*skeleton 		= frame->get_skeleton ();
+	J_VideoFrameRef 	*depth_frame 	= frame->get_depth_frame ();
+	J_VideoFrameRef 	*color_frame 	= frame->get_color_frame ();
+
+
+	/*### Step 2: open the outfiles ###*/
+	vector<string> filepaths = get_next_filepaths (WRITE);
+	string skeleton_filepath = filepaths.at(0);
+	string depth_filepath = filepaths.at(1);
+	string color_filepath = filepaths.at(2);
+
+	ofstream skeleton_outfile;
 	ofstream depth_outfile;
 	ofstream color_outfile;
-	depth_outfile.open (depth_filename.c_str());
-	color_outfile.open (color_filename.c_str());
 
-	cout << "		### Depth frame outfile: " << depth_filename.c_str () << endl;
-	cout << "		### Color frame outfile: " << color_filename.c_str () << endl;
+	skeleton_outfile.open (skeleton_filepath.c_str());
+	depth_outfile.open (depth_filepath.c_str());
+	color_outfile.open (color_filepath.c_str());
 
-	/*### Step 2: write the contents to each of them ###*/
-	write_frame (depth_frame, depth_outfile);
-	write_frame (color_frame, color_outfile);
+	cout << "		### Skeleton outfile: " << skeleton_filepath.c_str() << endl;
+	cout << "		### Depth outfile: " << depth_filepath.c_str () << endl;
+	cout << "		### Color outfile: " << color_filepath.c_str () << endl;
+
+	/*### Step 3: write the contents to each of them ###*/
+	write_skeleton 	(skeleton, skeleton_outfile);
+	write_frame_ref (depth_frame, depth_outfile);
+	write_frame_ref (color_frame, color_outfile);
 
 
-	/*### Step 3: cleanup ###*/
+	/*### Step 4: cleanup ###*/
+	skeleton_outfile.close ();
 	depth_outfile.close ();
 	color_outfile.close ();
+
+	current_write_index++;
 
 	return;
 }
 
-
-
-
-/* Function: write_frame 
- * ---------------------
- * given a pointer to a J_Frame object, this function will write it
- * to a file
- */
-void J_StorageDelegate::write (J_Frame *frame) {
-
-	/*### Step 0: assert that the frame is in fact valid ###*/
-	if (!frame->isValid ()) {
-		print_error ("J_StorateDelegate::write_frame error", "you passed in an invalid J_Frame");
-	}
-
- 	/*### Step 1: write the skeleton ###*/
- 	// print_status ("Storage", "Writing J_Skeleton");
- 	write_skeleton (frame->get_skeleton());
-
- 	/*### Step 2: write the frame_ref ###*/
- 	// print_status ("Storage", "Writing J_VideoFrameRef");
- 	write_frames (frame->get_depth_frame(), frame->get_color_frame());
-
- 	/*### Step 3: increment the frame number that we are currently on ###*/
- 	current_frame_number++;
- }
 
 
 
@@ -256,10 +253,10 @@ void J_StorageDelegate::write (J_Frame *frame) {
 /*########################################################################################################################*/
 /* Function: read_skeleton 
  * -----------------------
- * reads in the next skeleton from skel_infile;
+ * reads in the next skeleton from skeleton_infile;
  * NOTE: the user is responsible for freeing the returned skeleton
  */
-J_Skeleton * J_StorageDelegate::read_skeleton () {
+J_Skeleton * J_StorageDelegate::read_skeleton (ifstream &infile) {
 
 	J_Skeleton *skeleton = new J_Skeleton ();
 
@@ -268,7 +265,7 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
 
 	/*### Step 1: timestamp ###*/
 	int timestamp;
-	getline (skel_infile, line);
+	getline (infile, line);
 	sscanf (line.c_str(), "##### %d #####", &timestamp);
 	skeleton->setTimestamp (timestamp);
 	// cout << "	- timestamp " << timestamp << endl;
@@ -276,7 +273,7 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
 
 	/*### Step 2: see if it exists or not ###*/
 	int skeleton_exists;
-	getline (skel_infile, line);
+	getline (infile, line);
 	sscanf(line.c_str(), "----- exists: %d -----", &skeleton_exists);
 	// cout << "	- exists " << skeleton_exists << endl;
 
@@ -294,7 +291,7 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
 			nite::Point3f position_absolute;
 			nite::Quaternion orientation = nite::Quaternion(0, 0, 0, 0);
 
-			getline (skel_infile, line);
+			getline (infile, line);
 
 			int joint_name;
 
@@ -307,13 +304,13 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
 		}
 
 		/*### Step 3: beat existence ###*/
-		getline(skel_infile, line);
+		getline(infile, line);
 		sscanf(line.c_str(), "----- beat: %d -----", &beat_val);
 		skeleton->setBeat ((beat_val == 1));
 		// cout << "	- beat " << beat_val << endl;
 
 		/*### Step 4: pop existence ###*/
-		getline (skel_infile, line);
+		getline (infile, line);
 		sscanf (line.c_str(), "----- pop: %d -----", &pop_val);
 		skeleton->setPop ((pop_val == 1));
 		// cout << "	- pop " << pop_val << endl;
@@ -321,7 +318,7 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
 	}
 
 	/*### Step 5: get final line ###*/
-	getline(skel_infile, line);
+	getline(infile, line);
 
 	return skeleton;
 }
@@ -332,7 +329,7 @@ J_Skeleton * J_StorageDelegate::read_skeleton () {
  * given an infile, this function will read in and return a J_VideoFrameRef.
  * Note: user is responsible for freeing the J_VideoFrameRef!
  */
-J_VideoFrameRef * J_StorageDelegate::read_frame (ifstream &infile) {
+J_VideoFrameRef * J_StorageDelegate::read_frame_ref (ifstream &infile) {
 
  	/*--- data to write to ---*/
  	string line;
@@ -400,65 +397,48 @@ J_VideoFrameRef * J_StorageDelegate::read_frame (ifstream &infile) {
 	return frame_ref;
  }
 
-/* Function: read_frames
+/* Function: read
  * -------------------------
- * reads in the next depth/color frames and returns pointers to them in an array.
- * NOTE: the user is responsible for freeing all memory created by
- * calling this function (namely the J_VideoFrameRef returned)
+ * returns the next J_Frame
+ * Note: user is responsible for freeing the J_Frame at the end of their usage.
  */
-vector <J_VideoFrameRef*> J_StorageDelegate::read_frames() {
+J_Frame * J_StorageDelegate::read() {
 
-	/*### Step 1: open the infiles ###*/
-	string depth_filename = get_next_depth_filepath (read_recording_stage); 
-	string color_filename = get_next_color_filepath (read_recording_stage);
+	/*### Step 2: open the infiles ###*/
+	vector<string> filepaths = get_next_filepaths (READ);
+	string skeleton_filepath = filepaths.at(0);
+	string depth_filepath = filepaths.at(1);
+	string color_filepath = filepaths.at(2);
+
+	ifstream skeleton_infile;
 	ifstream depth_infile;
 	ifstream color_infile;
-	depth_infile.open (depth_filename.c_str());
-	color_infile.open (color_filename.c_str());
 
-	/*### Step 2: read into each of the frames ###*/
-	J_VideoFrameRef * depth_frame;
-	J_VideoFrameRef * color_frame;
-	depth_frame = read_frame (depth_infile);
-	color_frame = read_frame (color_infile);
+	skeleton_infile.open (skeleton_filepath.c_str());
+	depth_infile.open (depth_filepath.c_str());
+	color_infile.open (color_filepath.c_str());
 
-	/*### Step 3: close the infiles ###*/
+	cout << "		### Skel infile: " << skeleton_filepath.c_str() << endl;
+	cout << "		### Depth infile: " << depth_filepath.c_str () << endl;
+	cout << "		### Color infile: " << color_filepath.c_str () << endl;
+
+	/*### Step 3: write the contents to each of them ###*/
+	J_Skeleton * 		skeleton 	= read_skeleton 	(skeleton_infile);
+	J_VideoFrameRef * 	depth_frame = read_frame_ref 	(depth_infile);
+	J_VideoFrameRef * 	color_frame = read_frame_ref 	(color_infile);	
+
+
+	/*### Step 4: close infiles ###*/
+	skeleton_infile.close ();
 	depth_infile.close ();
 	color_infile.close ();
 
-	/*### Step 4: return the array of J_VideoFrameRefs ###*/
-	std::vector <J_VideoFrameRef*> frame_refs;
-	frame_refs.push_back (depth_frame);
-	frame_refs.push_back (color_frame);
-	return frame_refs;
+	/*### Step 4: Construct and return a J_Frame ###*/
+	J_Frame * frame = new J_Frame (skeleton, depth_frame, color_frame);
+	current_read_index++;
+	return frame;
 }
 
-
-
-/* Function: read_frame 
- * ---------------------
- * given a pointer to a J_Frame object, this function will write it
- * to a file
- */
-J_Frame * J_StorageDelegate::read () {
-
-	/*### Step 1: read in the skeleton ###*/
-	J_Skeleton *skeleton = read_skeleton ();
-
-	/*### Step 2: get the frame_refs ###*/
-	vector <J_VideoFrameRef*> frame_refs = read_frames ();
-	J_VideoFrameRef* depth_frame = frame_refs.at (0);
-	J_VideoFrameRef* color_frame = frame_refs.at (1);	
-
-
-	/*### Step 3: make the frame and return it ###*/
-	J_Frame * frame = new J_Frame (skeleton, depth_frame, color_frame);
-
-	/*### Step 4: update the current frame number ###*/
-	current_frame_number++;
-
-	return frame;
- }
 
 
 

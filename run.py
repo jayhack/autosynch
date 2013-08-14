@@ -24,15 +24,11 @@ MARK_BEATS_MODE = 2
 MARK_POPS_MODE = 3
 SYNCHRONIZE_MODE = 4
 mode_map = {
-	'r': RECORD_MODE,
-	'p': PLAY_MODE,
-	's': SYNCHRONIZE_MODE,
-}
-
-play_options_map = {
-	'r': 'raw',
-	'm': 'marked',
-	's': 'synced'
+	'r': 'record',
+	'm': 'mark',
+	'o': 'observe_marked',
+	's': 'sync',
+	'q': 'observe_synced'
 }
 
 
@@ -72,9 +68,9 @@ if __name__ == "__main__":
 
 	### Step 2: Get mode ###
 	if options.mode == None:
-		selected_mode = raw_input ("--- AVAILABLE MODES ---\n- r = record \n- p = play\n- s = synchronize\nEnter a mode: ")
+		selected_mode = raw_input ("--- AVAILABLE MODES ---\n- r = record mode\n- m = mark mode\n- o = observe marked mode\n- s = synchronize mode\n- q = observe synchronized mode\nEnter a mode: ")
 		if not selected_mode in mode_map.keys ():
-			print_error ("Dafuq was that", "Enter one of the options listed above, breh")
+			print_error ("Invalid mode", "Enter one of the options listed above. exiting.")
 		else:
 			options.mode = mode_map[selected_mode]
 
@@ -85,7 +81,7 @@ if __name__ == "__main__":
 
 	### Step 4: make sure filename is valid for this operation ###
 	sync_dir_path = os.path.join (os.path.join (recordings_dir, options.filename + ".sync"))
-	if options.mode == RECORD_MODE:
+	if options.mode == 'record':
 		if os.path.exists (sync_dir_path):
 			print_error ("the filename you entered already exists", "delete that shit and try again")
 		else:
@@ -103,44 +99,13 @@ if __name__ == "__main__":
 
 	### Step 5: get the arguments to pass to the C++ program ###
 	print_status ("CLI", "starting program")
-	system_command = None
 
-	##########[ --- RECORD MODE --- ]#####  
-	if options.mode == RECORD_MODE:	
-		read_dir = 'xxx'	#read from nowhere (dummy value)
-		write_dir = 'raw'	#write to raw
+	cpp_args = [options.mode, sync_dir_path]
+	os.chdir (os.path.join(os.getcwd(), "Bin"))
+	system_command = "./x64-release/ni_template " + ' '.join(cpp_args)
+	print_status ("CLI", "Executing command: " + system_command)
+	os.system(system_command);
 
-		cpp_args = ['record', sync_dir_path, read_dir, write_dir]
-		os.chdir (os.path.join(os.getcwd(), "Bin"))
-		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)
-
-	elif options.mode == PLAY_MODE:
-
-		### Query what to play ###
-		play_file_name = None
-		selected_file = raw_input ("Which file would you like to play?\n- r = raw\n- m = marked\n- s = synchronized\nFile choice: ")
-		if not selected_file in play_options_map:
-			print_error ("Invalid file", "enter one of the above options")
-		else:
-			read_file 	= play_options_map [selected_file]
-			write_file 	= play_options_map ['m']
-
-		cpp_args = ['play', sync_dir_path, read_file, write_file];
-		os.chdir (os.path.join(os.getcwd(), "Bin"))
-		system_command = "./x64-Release/ni_template " + ' '.join(cpp_args)
-
-
-
-	elif options.mode == SYNCHRONIZE_MODE:
-		python_args = [	os.path.join (sync_dir_path, "Marked/skeleton_just_beats.skel"), 	#just the beats
-						os.path.join (sync_dir_path, "Marked/skeleton.skel"),				#will contain beats/pops
-						os.path.join (sync_dir_path, "Synced/skeleton.skel"), 				#synchronizec
-						'./python_backend/classifiers/two_of_each_deriv.obj'				#classifier
-					]
-		system_command = "./python_backend/synchronize.py " + ' '.join(python_args)
-
-	print system_command
-	os.system (system_command)
 
 
 

@@ -40,7 +40,7 @@ NI_Player* NI_Player::self = NULL;
  * ---------------------
  * initializes all forms of recording, though does not start writing to output
  */
-NI_Player::NI_Player (const char* file_path, const char* read_dir, const char* write_dir, int argc, char** argv) {
+NI_Player::NI_Player (const char* file_path, int mode, int argc, char** argv) {
 	self = this;
 
 	/*### Step 1: initialize the APIs ###*/
@@ -53,7 +53,7 @@ NI_Player::NI_Player (const char* file_path, const char* read_dir, const char* w
 
 	/*### Step 3: initialize the storage delegate ###*/
 	print_status ("Initialization (Player)", "Creating Storage Delegate");
-	storage_delegate = new J_StorageDelegate (file_path, read_dir, write_dir);
+	storage_delegate = new J_StorageDelegate (file_path, mode);
 
 	stop_recording ();
 	print_status ("Initialization (Player)", "Complete");	
@@ -172,14 +172,14 @@ void NI_Player::onkey (unsigned char key, int x, int y) {
 		/*### B: label frame as beat ###*/
 		case 'b':
 			print_status ("Main operation", "Labelled beat");
-			// do something to label the beat here!
+			setBeat ();
 			break;	
 
 
 		/*### P: label frame as pop ###*/
 		case 'p':
 			print_status ("Main operation", "Labelled pop");
-			//do something to label the pop here!
+			setPop ();
 			break;
 
 	}
@@ -188,16 +188,23 @@ void NI_Player::onkey (unsigned char key, int x, int y) {
 void NI_Player::display () {
 
 	/*### Step 1: get the next J_Frame ###*/
-	// print_status ("Display", "Getting frame");
+	print_status ("Display", "Getting frame");
 	J_Frame *frame = storage_delegate->read ();
 
 	/*### Step 2: draw it to the screen ###*/
-	// print_status ("Display", "Drawing frame");
+	print_status ("Display", "Drawing frame");
 	drawer.draw_frame (frame);
 
 	/*### Step 3: record it ###*/
 	if (isRecording ()) {
+
+		frame->get_skeleton()->setBeat (getBeat ());
+		frame->get_skeleton()->setPop (getPop ());
+
 		storage_delegate->write (frame);
+
+		clearBeat 	();
+		clearPop 	();
 	}
 
 	/*### Step 3: free all memory dedicated to the frame ###*/
@@ -241,6 +248,17 @@ void NI_Player::stop_recording () {
 	is_recording = false;
 }
 
+
+/*########################################################################################################################*/
+/*###############################[--- Labelling Utilities ---] ###########################################################*/
+/*########################################################################################################################*/
+void NI_Player::setBeat () 		{	beat_just_occurred = true;}
+void NI_Player::clearBeat ()	{	beat_just_occurred = false;}
+bool NI_Player::getBeat ()		{ 	return beat_just_occurred; }
+
+void NI_Player::setPop ()		{	pop_just_occurred = true;}
+void NI_Player::clearPop ()		{	pop_just_occurred = false;}
+bool NI_Player::getPop ()		{	return pop_just_occurred; }
 
 
 

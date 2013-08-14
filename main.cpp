@@ -27,22 +27,28 @@ int main(int argc, char** argv)
 
 
 	/*### Step 1: make sure the arguments are correct ###*/
-	if (argc != 5) print_error ("Incorrect usage", "try ./ (record|play|mark) [.sync filename, without .sync]");
+	if (argc != 3) print_error ("Incorrect usage", "try ./ (record|mark|observe_marked|.observe_synced) [.sync filename, without .sync]");
 	char *mode_string 	= argv[1];
 	char *file_path		= argv[2];
-	char *read_dir		= argv[3];		//directory we are reading from
-	char *write_dir 	= argv[4];		//directory we are writing from
 
+
+	int mode = 0;
 
 	if (strcmp (mode_string, "record") == 0) {
 		print_status ("MAIN", "Beginning Initializion of ni_recorder");
-		NI_Recorder ni_recorder (file_path, read_dir, write_dir, argc, argv);
+		NI_Recorder ni_recorder (file_path, argc, argv);
 		print_status ("MAIN", "Finished initializion of ni_recorder");
 		ni_recorder.Run ();
 	}
-	else if (strcmp(mode_string, "play") == 0) {
+	else {
+		int mode = -1;
+		if 			(strcmp (mode_string, "mark") == 0)			 	mode = MARK_MODE;
+		else if 	(strcmp (mode_string, "observe_marked") == 0) 	mode = OBSERVE_MARKED_MODE;
+		else if 	(strcmp (mode_string, "observe_synced") == 0) 	mode = OBSERVE_SYNCHRONIZED_MODE;
+		else 		print_error ("MAIN", "Could not parse the mode you entered");
+
 		print_status ("MAIN", "Beginning Initialization of ni_player");
-		NI_Player ni_player (file_path, read_dir, write_dir, argc, argv);
+		NI_Player ni_player (file_path, mode, argc, argv);
 		print_status ("MAIN", "Finished initializion of ni_player");	
 		ni_player.Run ();
 	}	

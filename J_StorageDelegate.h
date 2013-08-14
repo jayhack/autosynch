@@ -31,6 +31,14 @@
 /*--- Constants ---*/
 #define MAX_FILENAME_LENGTH 150
 
+#define RECORD_MODE 0
+#define MARK_MODE 1
+#define OBSERVE_MARKED_MODE 2
+#define OBSERVE_SYNCHRONIZED_MODE 3
+
+#define READ 0
+#define WRITE 1
+
 /*--- Namespaces ---*/
 using namespace std;
 
@@ -43,16 +51,13 @@ private:
 	J_FilenameManager filename_manager;
 
 	/*--- General ---*/
-	int current_frame_number;
-	int write_recording_stage;		//the recording stage we are writing to
-	int read_recording_stage;		//the recording stage we are reading from
-
+	int mode;
+	int current_read_index;
+	int current_write_index;
 
 	/*--- Skel ---*/	
-	ifstream skel_infile;	
-	ofstream skel_outfile;
-
-
+	string in_directory;
+	string out_directory;
 
 
 
@@ -63,23 +68,20 @@ public:
 
 	/*--- Constructor/Destructor ---*/
 	J_StorageDelegate 		();
-	J_StorageDelegate 		(const char *selected_file_path, const char* new_read_stage, const char* new_write_stage);
+	J_StorageDelegate 		(const char *selected_file_path, int selected_mode);
 	~J_StorageDelegate 		();
 
 	/*--- Misc ---*/
-	string get_next_depth_filepath (int recording_stage);
-	string get_next_color_filepath (int recording_stage);
+	vector<string> get_next_filepaths (int read_or_write);
 
 	/*--- Writing ---*/
-	void write_skeleton 	(J_Skeleton *skeleton);
-	void write_frame 		(J_VideoFrameRef *frame_ref, ofstream &outfile);
-	void write_frames 		(J_VideoFrameRef *depth_frame, J_VideoFrameRef *color_frame);
+	void write_skeleton 	(J_Skeleton *skeleton, ofstream &outfile);
+	void write_frame_ref 	(J_VideoFrameRef *frame_ref, ofstream &outfile);
 	void write 				(J_Frame *frame);
 
 	/*--- Reading ---*/
-	J_Skeleton *				read_skeleton 	();
-	J_VideoFrameRef *			read_frame 		(ifstream &infile);
-	vector <J_VideoFrameRef*>	read_frames 	();
+	J_Skeleton *				read_skeleton 	(ifstream &infile);
+	J_VideoFrameRef *			read_frame_ref 	(ifstream &infile);
 	J_Frame * 					read 			();
 
 	/*--- Controls ---*/

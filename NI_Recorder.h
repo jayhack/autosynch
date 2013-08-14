@@ -67,7 +67,7 @@ public:
 
 
 	/*--- Constructor/Destructor ---*/
-	NI_Recorder 	(const char* file_path, const char* read_dir, const char* write_dir, int argc, char** argv);
+	NI_Recorder 	(const char* file_path, int argc, char** argv);
 	~NI_Recorder 	();
 
 

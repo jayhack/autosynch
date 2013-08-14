@@ -40,7 +40,7 @@ NI_Recorder* NI_Recorder::self = NULL;
  * ---------------------
  * initializes all forms of recording, though does not start writing to output
  */
-NI_Recorder::NI_Recorder (const char* file_path, const char *read_dir, const char* write_dir, int argc, char** argv) {
+NI_Recorder::NI_Recorder (const char* file_path, int argc, char** argv) {
 	self = this;
 
 	/*### Step 1: initialize the APIs ###*/
@@ -57,7 +57,7 @@ NI_Recorder::NI_Recorder (const char* file_path, const char *read_dir, const cha
 
 	/*### Step 3: initialize the storage delegate ###*/
 	print_status ("Initialization (Recorder)", "Creating Storage Delegate");
-	storage_delegate = new J_StorageDelegate (file_path, read_dir, write_dir);
+	storage_delegate = new J_StorageDelegate (file_path, RECORD_MODE);
 
 	/*### Step 3: initialize recording to false ###*/
 	stop_recording ();
