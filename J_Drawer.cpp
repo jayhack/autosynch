@@ -17,7 +17,7 @@
 J_Drawer::J_Drawer () {
 
 	/*--- initialize draw mode ---*/
-	draw_mode = DRAW_COLOR;
+	draw_mode = DRAW_DEPTH;
 
 	/*--- initialize colors ---*/
 	Colors[0][0] = 1;
@@ -316,8 +316,12 @@ void J_Drawer::Draw_J_Skeleton (J_Skeleton *skeleton) {
 	Draw_J_Limb(skeleton->getJoint(nite::JOINT_RIGHT_KNEE), skeleton->getJoint(nite::JOINT_RIGHT_FOOT), 0);
 
 	/*--- Beat and Pop ---*/
-	if (skeleton->getPop ()) 	indicate_pop 	(skeleton);
-	if (skeleton->getBeat()) 	indicate_beat 	();
+	if (skeleton->getPop ()) 	{
+		indicate_pop 	(skeleton);
+	}
+	if (skeleton->getBeat()) {
+		indicate_beat ();
+	} 	
 
 }
 
@@ -342,10 +346,11 @@ void J_Drawer::Draw_J_Skeleton (J_Skeleton *skeleton) {
 
 /* Function: J_IndicateBeat
  * ------------------------
- * draws a red box to indicate when the beat has occurred
+ * draws a green box (upper left) indicate when the beat has occurred
  */
 void J_Drawer::indicate_beat () {
-	glColor3f(1.0f, 0.0f, 0.0f);
+
+	glColor3f(0.0f, 1.0f, 0.0f);
 	
 	float coordinates[] =
 	{
@@ -365,7 +370,8 @@ void J_Drawer::indicate_beat () {
 
 	glPointSize(20);
 	glVertexPointer(3, GL_FLOAT, 0, coordinates);
-	glDrawArrays(GL_LINE_LOOP, 0, 4);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
 }
 
 /* Function: J_IndicatePop
@@ -399,7 +405,34 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
+/* Function: indicate_recording
+ * ----------------------------
+ * puts a red box in the upper-right corner
+ */
+void J_Drawer::indicate_recording () {
 
+	glColor3f(1.0f, 0.0f, 0.0f);
+	
+	float coordinates[] =
+	{
+		300, 50, 0,
+		300, 20, 0,
+		250, 20, 0,
+		250, 50, 0,
+	};
+	coordinates[0]  *= GL_WIN_SIZE_X/(float)g_nXRes;
+	coordinates[1]  *= GL_WIN_SIZE_Y/(float)g_nYRes;
+	coordinates[3]  *= GL_WIN_SIZE_X/(float)g_nXRes;
+	coordinates[4]  *= GL_WIN_SIZE_Y/(float)g_nYRes;
+	coordinates[6]  *= GL_WIN_SIZE_X/(float)g_nXRes;
+	coordinates[7]  *= GL_WIN_SIZE_Y/(float)g_nYRes;
+	coordinates[9]  *= GL_WIN_SIZE_X/(float)g_nXRes;
+	coordinates[10] *= GL_WIN_SIZE_Y/(float)g_nYRes;
+
+	glPointSize(20);
+	glVertexPointer(3, GL_FLOAT, 0, coordinates);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
 
 
 
@@ -523,7 +556,7 @@ void J_Drawer::draw_depth_frame (J_VideoFrameRef *depth_frame) {
  * --------------------
  * given a pointer to a frame, this function will draw it on screen.
  */
-void J_Drawer::draw_frame (J_Frame *frame) {
+void J_Drawer::draw_frame (J_Frame *frame, bool is_recording) {
 
 	/*### Step 1: get the depth/color frames ###*/
 	J_VideoFrameRef *depth_frame = frame->get_depth_frame ();
@@ -541,9 +574,6 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 			texture_map_x = MIN_CHUNKS_SIZE(color_frame->getResolutionX(), TEXTURE_SIZE);
 			texture_map_y = MIN_CHUNKS_SIZE(color_frame->getResolutionY(), TEXTURE_SIZE);
 			pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
-		}
-		else {
-			print_error ("J_Drawer", "Draw mode not recognized");
 		}
 	}
 
@@ -574,9 +604,7 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 		g_nXRes = color_frame->getResolutionX();
 		g_nYRes = color_frame->getResolutionY();	
 	}
-	else {
-		// print_error ("J_Drawer", "Draw mode not recognized");
-	}
+
 
 	// cout << "color_frame height, width = " << color_frame->getHeight () << ", " << color_frame->getWidth () << endl;
 	// cout << "depth_frame height, width = " << depth_frame->getHeight () << ", " << depth_frame->getWidth () << endl;	
@@ -613,14 +641,19 @@ void J_Drawer::draw_frame (J_Frame *frame) {
 	
 
 
-	/*### Finally - draw the skeleton ###*/
+	/*### Draw the skeleton ###*/
 	J_Skeleton *skeleton = frame->get_skeleton ();
 	if (skeleton != NULL) {
 		Draw_J_Skeleton (skeleton);
 	}
-	// else {
-		// cout << ">>> SKELETON NOT VALID <<<" << endl;
-	// }
+
+
+	/*### Draw the 'recording' mark ###*/
+	if (is_recording == true) {
+		indicate_recording ();
+	}
+
+
 
 	/*### Swap buffers (display) ###*/
 	glutSwapBuffers ();

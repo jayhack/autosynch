@@ -60,7 +60,7 @@ J_StorageDelegate::J_StorageDelegate (	const char *selected_file_path, 		//filep
 		out_directory.assign(filename_manager.get_filename(RAW, JVID_FILE));
 
 	}
-	else if (selected_mode == MARK_MODE) {
+	else if (selected_mode == OBSERVE_RAW_MODE) {
 		in_directory.assign (filename_manager.get_filename 	(RAW, JVID_FILE));
 		out_directory.assign(filename_manager.get_filename	(MARKED, JVID_FILE));	
 	}
@@ -121,49 +121,41 @@ vector<string> J_StorageDelegate::get_next_filepaths (int read_or_write) {
 	return next_filepaths;
 }
 
+
+
 /* Function: write_skeleton
  * ------------------------
- * writes the specified J_Skeleton to the .skel outfile.
+ * writes the skeleton in a compressed format
+ * basically just a matrix
  */
-void J_StorageDelegate::write_skeleton (J_Skeleton * skeleton, ofstream &outfile) {
+void J_StorageDelegate::write_skeleton (J_Skeleton *skeleton, ofstream &outfile) {
 
-	/*### Step 1: Skeleton id ###*/
-	outfile << "##### " << current_write_index << " #####" << endl;
+	/*--- skeleton index ---*/
+	outfile << current_write_index << endl;
 
-	/*### Step 2: if no skeleton exists, then get out of there ###*/
+	/*--- skeleton existence ---*/
 	if (skeleton == NULL) {
-		outfile << "----- exists: 0 -----" << endl << endl;
+		outfile << "0" << endl;
 		return;
 	}
-	else {
-		outfile << "----- exists: 1 -----" << endl;
+	else outfile << "1" << endl;
 
-		/*### Step 2: joints ###*/
-		for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
-		
-			J_Joint *current_joint = skeleton->getJoint ((nite::JointType) i);
+	/*--- beat ---*/
+	if (skeleton->getBeat ()) 	outfile << "1" << endl;
+	else 						outfile << "0" << endl;
 
-			nite::Point3f position = current_joint->getPosition ();
-			nite::Point3f position_absolute = current_joint->getPositionAbsolute ();
+	/*--- pop ---*/
+	if (skeleton->getPop ()) 	outfile << "1" << endl;
+	else 						outfile << "0" << endl;
 
-			outfile << i << ": (" << position.x << ", " << position.y << ", " << position.z << ") | ";
-			outfile << 		"( " << position_absolute.x << ", " << position_absolute.y << ", " << position_absolute.z << ")" << endl;
+	/*--- joints ---*/
+	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
 
-		}
+		J_Joint *current_joint = skeleton->getJoint ((nite::JointType) i);
+		nite::Point3f position = current_joint->getPosition ();
+		nite::Point3f position_absolute = current_joint->getPositionAbsolute ();
 
-		bool beat = skeleton->getBeat ();
-		bool pop = skeleton->getPop ();
-
-		/*### Step 3: beat ###*/
-		if (beat) 	outfile << "----- beat: 1 -----" << endl;
-		else 		outfile << "----- beat: 0 -----" << endl;
-
-		/*### Step 4: pop ###*/
-		if (pop) 	outfile << "----- pop: 1 -----" << endl;
-		else 		outfile << "----- pop: 0 -----" << endl;
-
-		/*### Step 5: trailing newline ###*/
-		outfile << endl;
+		outfile << position.x << ", " << position.y << ", " << position.z << ", " << position_absolute.x << ", " << position_absolute.y << ", " << position_absolute.z << endl;
 	}
 }
 
@@ -199,8 +191,6 @@ void J_StorageDelegate::write_frame_ref (J_VideoFrameRef *frame_ref, ofstream &o
  */
 void J_StorageDelegate::write (J_Frame *frame) {
 
-	print_status ("J_StorageDelegate", "Writing frame");
-
 	/*### Step 1: sanitize the frame ###*/
 	if (!frame->isValid ()) print_error ("J_StorateDelegate::write_frame error", "you passed in an invalid J_Frame");
 	J_Skeleton 			*skeleton 		= frame->get_skeleton ();
@@ -222,9 +212,9 @@ void J_StorageDelegate::write (J_Frame *frame) {
 	depth_outfile.open (depth_filepath.c_str());
 	color_outfile.open (color_filepath.c_str());
 
-	cout << "		### Skeleton outfile: " << skeleton_filepath.c_str() << endl;
-	cout << "		### Depth outfile: " << depth_filepath.c_str () << endl;
-	cout << "		### Color outfile: " << color_filepath.c_str () << endl;
+	// cout << "		### Skeleton outfile: " << skeleton_filepath.c_str() << endl;
+	// cout << "		### Depth outfile: " << depth_filepath.c_str () << endl;
+	// cout << "		### Color outfile: " << color_filepath.c_str () << endl;
 
 	/*### Step 3: write the contents to each of them ###*/
 	write_skeleton 	(skeleton, skeleton_outfile);
@@ -263,27 +253,34 @@ J_Skeleton * J_StorageDelegate::read_skeleton (ifstream &infile) {
 	string line;
 	int beat_val, pop_val;
 
-	/*### Step 1: timestamp ###*/
+	/*--- timestamp ---*/
 	int timestamp;
 	getline (infile, line);
-	sscanf (line.c_str(), "##### %d #####", &timestamp);
+	sscanf (line.c_str(), "%d", &timestamp);
 	skeleton->setTimestamp (timestamp);
-	// cout << "	- timestamp " << timestamp << endl;
 
 
-	/*### Step 2: see if it exists or not ###*/
+	/*--- existence ---*/
 	int skeleton_exists;
 	getline (infile, line);
-	sscanf(line.c_str(), "----- exists: %d -----", &skeleton_exists);
-	// cout << "	- exists " << skeleton_exists << endl;
-
-
-	/*### Step 3: in case it does, fill in all the other information ###*/
+	sscanf(line.c_str(), "%d", &skeleton_exists);
 	if (skeleton_exists == 1) {
-
 		skeleton->setValid (true);
 
-		/*### Step 2: joints ###*/
+
+		/*--- beat ---*/
+		int beat;
+		getline (infile, line);
+		sscanf(line.c_str(), "%d", &beat);
+		skeleton->setBeat (beat);
+
+		/*--- pop ---*/
+		int pop;
+		getline (infile, line);
+		sscanf(line.c_str (), "%d", &pop);
+		skeleton->setPop (pop);
+
+		/*--- joints ---*/
 		for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
 
 			/*--- we will fill these with joint information... ---*/
@@ -292,33 +289,13 @@ J_Skeleton * J_StorageDelegate::read_skeleton (ifstream &infile) {
 			nite::Quaternion orientation = nite::Quaternion(0, 0, 0, 0);
 
 			getline (infile, line);
-
-			int joint_name;
-
-			sscanf (	line.c_str(), "%d: (%f, %f, %f) | (%f, %f, %f)", 
-						&joint_name, 
+			sscanf (	line.c_str(), "%f, %f, %f, %f, %f, %f", 
 						&position.x, &position.y, &position.z, 
 						&position_absolute.x, &position_absolute.y, &position_absolute.z);
 
-			skeleton->setJoint ((nite::JointType) joint_name, position, position_absolute, orientation);
+			skeleton->setJoint ((nite::JointType) i, position, position_absolute, orientation);
 		}
-
-		/*### Step 3: beat existence ###*/
-		getline(infile, line);
-		sscanf(line.c_str(), "----- beat: %d -----", &beat_val);
-		skeleton->setBeat ((beat_val == 1));
-		// cout << "	- beat " << beat_val << endl;
-
-		/*### Step 4: pop existence ###*/
-		getline (infile, line);
-		sscanf (line.c_str(), "----- pop: %d -----", &pop_val);
-		skeleton->setPop ((pop_val == 1));
-		// cout << "	- pop " << pop_val << endl;
-
 	}
-
-	/*### Step 5: get final line ###*/
-	getline(infile, line);
 
 	return skeleton;
 }
@@ -398,13 +375,13 @@ J_VideoFrameRef * J_StorageDelegate::read_frame_ref (ifstream &infile) {
  }
 
 /* Function: read
- * -------------------------
- * returns the next J_Frame
+ * --------------
+ * returns the next J_Frame, NULL if one doesn't exist
  * Note: user is responsible for freeing the J_Frame at the end of their usage.
  */
 J_Frame * J_StorageDelegate::read() {
 
-	/*### Step 2: open the infiles ###*/
+	/*### Step 1: open the infiles ###*/
 	vector<string> filepaths = get_next_filepaths (READ);
 	string skeleton_filepath = filepaths.at(0);
 	string depth_filepath = filepaths.at(1);
@@ -418,9 +395,14 @@ J_Frame * J_StorageDelegate::read() {
 	depth_infile.open (depth_filepath.c_str());
 	color_infile.open (color_filepath.c_str());
 
-	cout << "		### Skel infile: " << skeleton_filepath.c_str() << endl;
-	cout << "		### Depth infile: " << depth_filepath.c_str () << endl;
-	cout << "		### Color infile: " << color_filepath.c_str () << endl;
+	/*### Step 2: check if they are open ###*/
+	if (!skeleton_infile.is_open () || !depth_infile.is_open () || !color_infile.is_open ()) {
+		return NULL;
+	}
+
+	// cout << "		### Skel infile: " << skeleton_filepath.c_str() << endl;
+	// cout << "		### Depth infile: " << depth_filepath.c_str () << endl;
+	// cout << "		### Color infile: " << color_filepath.c_str () << endl;
 
 	/*### Step 3: write the contents to each of them ###*/
 	J_Skeleton * 		skeleton 	= read_skeleton 	(skeleton_infile);

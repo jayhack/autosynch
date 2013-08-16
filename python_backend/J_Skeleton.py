@@ -12,7 +12,12 @@ from J_Joint import J_Joint
 class J_Skeleton:
 
 	#--- properties ---
-	timestamp = -1		#time at which this skeleton originally occurred
+	read_index = -1
+	original_index = -1
+	exists = False
+	beat = 0
+	pop = 0
+	pop_probability = 0.0
 
 	#--- joints positions ---
 	joints = None		#dict mapping joint_name to J_Joint objects
@@ -25,28 +30,33 @@ class J_Skeleton:
 	sd_1 = None			#second derivatives of joint motion (over a smaller interval)
 	sd_2 = None			#second derivatives of joint motion (over a larger interval)
 
-	beat = False			#wether a beat occurred or not
-	pop = False				#wether a pop occurred or not
-	pop_probability = 0.0	#p(pop|feature_vector), as computed by the classifier
-
 
 
 	# Function: Constructor
 	# ---------------------
 	# initializes with timestamp and joints
-	def __init__ (self, timestamp, joints, beat=False, pop=False):
+	def __init__ (self, read_index, original_index, exists, beat, pop, joints):
 
-		#--- timestamp ---
-		self.timestamp = timestamp
-
-		#--- joints ---
+		#--- index ---
+		self.read_index = read_index
+		self.original_index = original_index
+		self.exists = exists
+		self.beat = beat
+		self.pop = pop
 		self.joints = joints
 
-		#--- beat ----
-		self.beat = beat
 
-		#--- pop ---
-		self.pop = pop
+	# Function: setters/getters
+	# -------------------------
+	# setters/getters for beat/pop
+	def setBeat (self, value):
+		self.beat = value
+	def setPop (self, value):
+		self.pop = value
+	def getBeat (self):
+		return self.beat
+	def getPop (self):
+		return self.pop
 
 
 
@@ -57,36 +67,32 @@ class J_Skeleton:
 		all_strings = []
 
 		#--- timestamp ---
-		all_strings.append("##### " + str(self.timestamp) + " #####")
-
-		#--- joints ---
-		for joint_name in self.joints.keys():
-			all_strings.append (self.joints[joint_name].__str__())
-
-		#--- beat ---
-		if self.beat:
-			all_strings.append ("----- beat: " + str(1) + " -----")
+		all_strings.append(str(self.original_index))
+		if self.exists == 0:
+			all_strings.append (str(0))
 		else:
-			all_strings.append ("----- beat: " + str(0) + " -----")
+			all_strings.append (str(1))
 
-		#--- pop ---
-		if self.pop:
-			all_strings.append ("----- pop: " + str(1) + " -----")
-		else:
-			all_strings.append ("----- pop: " + str(0) + " -----")
+			if self.beat == True or self.beat == 1:
+				all_strings.append ('1')
+			else:
+				all_strings.append ('0')
 
-		return '\n'.join(all_strings) + '\n\n'
+			if self.pop == True or self.pop == 1:
+				all_strings.append ('1')
+			else:
+				all_strings.append ('0')
 
-	
-	# Function: json 
-	# -----------------------
-	# returns a form that can be dumped to json
-	def json (self):
 
-		name_json = 'Skeleton_' + str(self.timestamp)
-		joints_json	= dict (j.json() for j in self.joints.values())
-		return {name_json:joints_json}
+			for i in range(15):
+				current_joint = self.joints[i]
+				joint_list = [current_joint.x, current_joint.y, current_joint.z, current_joint.x_abs, current_joint.y_abs, current_joint.z_abs]
+				joint_list = [str(l) for l in joint_list]
+				joint_string = ", ".join(joint_list)
 
+				all_strings.append (joint_string)
+
+		return '\n'.join(all_strings)
 
 
 	# Function: get_feature_vector
@@ -124,13 +130,6 @@ class J_Skeleton:
 
 		return features
 
-
-	# Function: get_label
-	# -------------------
-	# returns the label of this skeleton
-	def get_label (self):
-
-		return self.pop
 
 
 

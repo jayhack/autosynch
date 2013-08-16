@@ -11,6 +11,7 @@
 #--- Standard ---
 import sys
 import os
+import shutil
 import math
 import random
 import pickle
@@ -30,11 +31,16 @@ from mark_pops import Pop_Marker
 
 class Synchronizer:
 
+	#--- File Names ---
+	jvid_filename_raw 			= None
+	jvid_filename_pops_marked 	= None
+	jvid_filename_synchronized 	= None
+
 	#--- Pop_Marker ---
 	marker = None
 
 	#--- Skeletons ---
-	skeletons 				= None	#the original 			(input)
+	original_skeletons 		= None	#the original 			(input)
 	synchronized_skeletons	= None	#synchronized version 	(output)
 
 	#--- correspondences between beats and pops ---
@@ -42,21 +48,36 @@ class Synchronizer:
 	beat_indices 	= None	#just the beat indeces
 	pop_indices 	= None	#just the pop indeces
 
-
+	#--- synchronized_indeces ---
+	synchronized_indeces = None 	#List of the indexes of the skeletons that are in the synced recording
 
 	# Function: constructor
 	# ---------------------
 	# reads in all the relevant information, then will synchronize
-	def __init__ (self, infile_name, intermediary_file_name, classifier_name):
+	def __init__ (self, sync_directory, classifier_name):
 		
+		### Step 1: filename management ###
+		print_status ("Synchronizer", "looking at file " + sync_directory);
+		self.jvid_filename_raw 			= os.path.join(sync_directory, 'Marked/video.jvid')
+		self.jvid_filename_pops_marked 	= os.path.join(sync_directory, 'Marked/video_with_pops.jvid')
+		self.jvid_filename_synchronized 	= os.path.join(sync_directory, 'Synced/video.jvid')
+		# print "	### Raw jvid: " + self.jvid_filename_raw
+		# print "	### Pops_Marked jvid: " + self.jvid_filename_pops_marked
+		# print "	### Synchronized jvid: " + self.jvid_filename_synchronized
+
+
+		### Step 1: get the original skeletons ###
+		self.skeletons = read_in_skeletons (self.jvid_filename_raw)
+		# for skeleton in self.skeletons:
+			# print skeleton.joints
+
 		### Step 1: set up the pop marker, get back marked skeletons ###
-		self.marker = Pop_Marker (infile_name, classifier_name)
+		self.marker = Pop_Marker (self.skeletons, classifier_name)
 		self.marker.mark_pops ()
-		self.skeletons = self.marker.skeletons
+		self.skeletons_marked = self.marker.skeletons
 
 		### Step 2: save the intermediary skeletons ###
-		write_out_skeletons(self.skeletons, intermediary_file_name)
-
+		write_out_skeletons(self.skeletons_marked, self.jvid_filename_pops_marked)
 
 		### Step 2: find the correspondance between beats and pops ###
 		self.get_correspondences_naive ()
@@ -223,46 +244,76 @@ class Synchronizer:
 		return
 
 
+	# Function: write_synchronized_jvid
+	# ---------------------------------
+	# once synchronize() has already been called, this will write out the synchronized version
+	def write_synchronized_jvid (self):
+
+		for index, skeleton in enumerate(self.synchronized_skeletons):
+
+			original_index = skeleton.original_index
+
+			#--- get filenames ---
+			skeleton_filename_new 	= os.path.join (self.jvid_filename_synchronized, str(index) + '.s')
+			color_filename_new 		= os.path.join (self.jvid_filename_synchronized, str(index) + '.c')
+			depth_filename_new 		= os.path.join (self.jvid_filename_synchronized, str(index) + '.d')			
+
+			color_filename_old 		= os.path.join (self.jvid_filename_raw, str(original_index) + '.c')
+			depth_filename_old 		= os.path.join (self.jvid_filename_raw, str(original_index) + '.d')
+
+			#--- write out skeleton ---
+			skeleton_file = open(skeleton_filename_new, 'w')
+			skeleton_file.write(skeleton.__str__())
+			skeleton_file.close ()
+
+			#--- copy over the synced files ---
+			print color_filename_old + " -> " + color_filename_new
+			# shutil.copy (color_filename_old, color_filename_new)
+			# shutil.copy (depth_filename_old, depth_filename_new)
+			if (os.path.exists (color_filename_new)): 
+				os.remove (color_filename_new)
+			if (os.path.exists (depth_filename_new)):
+				os.remove (depth_filename_new)
+			os.symlink (color_filename_old, color_filename_new);
+			os.symlink (depth_filename_old, depth_filename_new);
+
+
+
+
+
 
 if __name__ == "__main__":
 
 	### Step 1: manage args ###
-	if len(sys.argv) < 4:
-		print_error ("Not enough args", "Usage: ./mark_pops.py [infile] [intermediary file] [outfile] [classifier_name]")
-	infile_name 			= sys.argv[1]
-	intermediary_file_name 	= sys.argv[2]
-	outfile_name 			= sys.argv[3]
-	classifier_name			= sys.argv[4]
+	if len(sys.argv) < 3:
+		print_error ("Not enough args", "Usage: ./synchronize.py [.sync file] [classifier_name]")
+	sync_dir 			= sys.argv[1]
+	classifier_name		= sys.argv[2]
 
 	
 	### Step 2: get the synchronizer ###
-	synchronizer = Synchronizer (infile_name, intermediary_file_name, classifier_name)
-
+	synchronizer = Synchronizer (sync_dir, classifier_name)
 
 
 	#--- FOR DEBUGGING ---
-	# pops = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].pop]
-	# beats = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].beat]
-	# print "--- correspondences ---"
-	# print synchronizer.correspondences
-	# print "--- BEATS ---"
-	# print beats
-	# print "--- POPS ---"
-	# print pops
+	print "\n\n##########[ --- SYNCHRONIZER OUTPUT --- ]##########"
+	pops = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].pop]
+	beats = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].beat]
+	print "--- correspondences ---"
+	print synchronizer.correspondences
+	print "--- BEATS ---"
+	print beats
+	print "--- POPS ---"
+	print pops
+	print "\n\n"
 
 
-	# synchronizer.correspondences = [(5, 4), (10, 11), (15, 14), (20, 21), (25, 24)]
-	# synchronizer.beat_indices = [b[0] for b in synchronizer.correspondences]
-	# synchronizer.pop_indices = [b[1] for b in synchronizer.correspondences]
-
-	### Step 3: synchronize ###
+	### Step 3: get synchronized_skeletons ###
 	synchronizer.synchronize ()
-	# print "--- synchronized indeces: ---"
-	# print synchronizer.synchronized_indeces
-	# print len(synchronizer.synchronized_indeces)
 
 	### Step 4: write the output to a file ###
-	write_out_skeletons (synchronizer.synchronized_skeletons, outfile_name)
+	synchronizer.write_synchronized_jvid ()
+
 
 
 

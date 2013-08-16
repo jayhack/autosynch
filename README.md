@@ -22,3 +22,13 @@ then do ./x64-.../executable (play|record) filpath
 		 - Raw/video.oni --> Synced/skeleton.skel
 
 
+
+
+#####[ --- .S file format --- ]#####
+timestamp
+exists
+beat
+pop
+joint 0 x, y, z, x_abs, y_abs, z_abs
+...
+joint 14 x, ...

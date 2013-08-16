@@ -67,14 +67,13 @@ class Pop_Marker:
 	# Function: Constructor
 	# ---------------------
 	# loads skeletons and the classifier; marks beats and beat intervals
-	def __init__ (self, infile_name, classifier_name):
+	def __init__ (self, skeletons, classifier_name):
 
 		### Step 1: load classifier ###
 		self.classifier = pickle.load (open(classifier_name, 'rb'))
 
 		### Step 2: get skeletons ###
-		skel = read_in_skeletons (infile_name)
-		self.skeletons = add_derivatives_to_skeletons (skel, 5, 10, 5, 10)
+		self.skeletons = add_derivatives_to_skeletons (skeletons, 5, 10, 5, 10)
 
 
 
@@ -139,77 +138,9 @@ class Pop_Marker:
 		local_maxima = set(local_maxima)
 		for index in range (len(self.skeletons)):
 			if index in local_maxima:
-				self.skeletons[index].pop = True
+				self.skeletons[index].pop = 1
 			else:
-				self.skeletons[index].pop = False
-
-
-
-
-	#------ ANTIQUATED --------
-	# Function: get_beat_intervals
-	# ----------------------------
-	# fills in beat_indexes and beat_intervals
-	# def get_beat_intervals (self):
-
-	# 	### Step 1: get beat indexes ###
-	# 	self.beat_indexes = [i for i in range (len(self.skeletons)) if self.skeletons[i].beat]
-
-	# 	### Step 2: get the intervals ###
-	# 	self.beat_intervals = []
-
-	# 	prev_index = 0
-	# 	for i in range(len(self.beat_indexes[:-1])):
-
-	# 		#--- update current_index and next_index ---
-	# 		current_index = self.beat_indexes[i]
-	# 		next_index = self.beat_indexes[i+1]
-
-	# 		#--- fill in the next Beat_interval ---
-	# 		self.beat_intervals.append( Beat_interval (current_index, prev_index, next_index))
-
-	# 		#--- update prev_index ---
-	# 		prev_index = current_index
-
-	# 	self.beat_intervals.append (Beat_interval(self.beat_indexes[-1], self.beat_indexes[-2], len(self.skeletons) - 1))
-
-	# # Function: get_marked_skeletons
-	# # ------------------------------
-	# # goes through all intervals and marks pops appropriately, returning the skeletons 
-	# # (also fills self.beat_pop_pairs)
-	# def get_marked_skeletons (self):
-
-	# 	self.beat_pop_pairs = []
-
-	# 	for beat_interval in self.beat_intervals:
-	# 		# print "----- " + str(beat_interval.beat_index) + " BEAT INTERVAL --------"
-
-	# 		#--- get all the skeletons that we are going to be looking at ---
-	# 		skeletons_interval = self.skeletons[beat_interval.interval_start:beat_interval.interval_end]
-	# 		best_value = -1000
-	# 		best_index = -1
-	# 		for i in range(len(skeletons_interval)):
-
-	# 			current_skeleton = skeletons_interval[i]
-	# 			feature_vector = current_skeleton.get_feature_vector ();
-
-	# 			p_of_pop = self.classifier.predict_proba (feature_vector)[0][1]
-	# 			# print str(beat_interval.interval_start + i) + ": p(pop) = ", p_of_pop,
-	# 			if p_of_pop > best_value:
-	# 				best_value = p_of_pop
-	# 				best_index = i
-	# 				# print "***",
-	# 			# print "\n"
-
-	# 		self.beat_pop_pairs.append ((beat_interval.beat_index, beat_interval.interval_start + best_index))
-
-	# 		#--- set the right skeleton to have a pop ---
-	# 		self.skeletons[beat_interval.interval_start + best_index].pop = True
-
-	# 	return self.skeletons
-	#------ ANTIQUATED --------		
-
-
+				self.skeletons[index].pop = 0
 
 
 

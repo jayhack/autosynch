@@ -14,20 +14,29 @@ class J_Joint:
 	y = None
 	z = None
 
+	x_abs = None
+	y_abs = None
+	z_abs = None
+
 	joint_name = None
 
 	# Function: Constructor
 	# ---------------------
 	# sets all internal properties
-	def __init__ (self, x, y, z, joint_name):
+	def __init__ (self, x, y, z, x_abs, y_abs, z_abs, joint_name):
 
 		#--- position ---
 		self.x = x
 		self.y = y
 		self.z = z
 
+		self.x_abs = x_abs
+		self.y_abs = y_abs
+		self.z_abs = z_abs
+
 		#--- joint_name ---
 		self.joint_name = joint_name
+
 
 	# Function: String Representation
 	# -------------------------------

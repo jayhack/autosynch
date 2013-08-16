@@ -59,8 +59,10 @@ NI_Recorder::NI_Recorder (const char* file_path, int argc, char** argv) {
 	print_status ("Initialization (Recorder)", "Creating Storage Delegate");
 	storage_delegate = new J_StorageDelegate (file_path, RECORD_MODE);
 
-	/*### Step 3: initialize recording to false ###*/
-	stop_recording ();
+	/*### Step 4: initialize current_frame_number ###*/
+	is_recording = false;
+	current_frame_number = 0;
+
 }
 
 /* Function: Destructor
@@ -183,18 +185,32 @@ void NI_Recorder::display () {
 	/*### Step 1: get the next J_Frame ###*/
 	// print_status ("Display", "Getting frame");
 	J_Frame *frame = device_delegate->readFrame ();
+	J_Skeleton *skeleton = frame->get_skeleton ();
 
-	/*### Step 2: draw it to the screen ###*/
-	// print_status ("Display", "Drawing frame");
-	drawer.draw_frame (frame);
+
+	/*### Step 2: set the beat if appropriate ###*/
+	if (skeleton != NULL) {
+		if ((current_frame_number % FRAMES_PER_BEAT) == 0) 	skeleton->setBeat (true);
+		else 												skeleton->setBeat (false);
+	}
+
 
 	/*### Step 3: record it ###*/
 	if (isRecording ()) {
-		storage_delegate->write (frame);
-	} 	 
+		// print_status("Display", "Writing frame");
+		J_Skeleton *skeleton = frame->get_skeleton ();
 
-	/*### Step 3: free all memory dedicated to the frame ###*/
+		storage_delegate->write (frame);
+	}
+
+	/*### Step 2: draw it to the screen ###*/
+	// print_status ("Display", "Drawing frame");
+	drawer.draw_frame (frame, isRecording());
+
+	/*### Step 3: free all memory dedicated to the frame, increment frame number ###*/
+	current_frame_number++;
 	delete frame;
+
 }
 
 /* Function: Run
@@ -214,21 +230,24 @@ openni::Status NI_Recorder::Run() {
 /*########################################################################################################################*/
 /* Function: is_recording
  * ----------------------
- * returns wether we are recording or not
+ * returns wether we are recording or not.
  */
 bool NI_Recorder::isRecording () {
+
 	return is_recording;
 }
 
 /* Function: (start|stop)_recording
  * -------------------------
- * starts/stops the recording
+ * starts/stops the recording; stop_recording () will also terminate the program.
  */
 void NI_Recorder::start_recording () {
+	current_recording_frame_number = 0;
 	is_recording = true;
 }
 void NI_Recorder::stop_recording () {
 	is_recording = false;
+	exit (0);
 }
 
 

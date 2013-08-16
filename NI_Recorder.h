@@ -28,6 +28,7 @@
 
 /*--- Constants ---*/
 #define MAX_FILENAME_LENGTH 150
+#define FRAMES_PER_BEAT 40 			//program will mark a 'beat' every 15 frames
 
 
 /*--- Namespaces ---*/
@@ -48,6 +49,8 @@ private:
 	bool isRecording ();
 	void start_recording ();
 	void stop_recording ();
+	int current_recording_frame_number;
+	int current_frame_number;
 
 	/*--- OpenGL Static Functions ---*/
 	static void glut_keyboard 		(unsigned char key, int x, int y);

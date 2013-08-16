@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # ---------------------------------------------------------- #
 # Script: read_write.py
 # -------------------------------
@@ -17,82 +18,88 @@ from J_Joint import J_Joint
 from J_Skeleton import J_Skeleton
 
 
-# Function: get_skeleton_timeseries
+# Function: read_in_skeletons
 # ---------------------------------
 # given an open file, this will read in the next skeleton
-def read_in_skeletons (filename):
+def read_in_skeletons (jvid_filename):
 
+	### data ###
 	skeletons = []
-
-	### Step 1: open file, get contents ###
-	f = open(filename, 'r')
-	entire_file = f.read ()
-
-	### Step 1: get each section by itself ###
-	sections = [s for s in entire_file.split ("\n\n") if len(s) > 5]
-
-	timestamp = 0
-	for section in sections:
-
-		#--- lines = list of all lines except for the newline character ---
-		all_lines = [line for line in section.split ('\n') if len(line) > 5]
-
-		#--- get timestamp --
-		top_line = all_lines[0]
-		digits = ''.join([c for c in top_line if c.isdigit()])
-		timestamp = int(digits)
+	infile_name = ''
+	read_index = 0
 
 
-		#--- get joint locations ---
-		joint_lines = [l for l in all_lines if l[0].isdigit()]
+	while True:
+	
+		#--- initial values ---
+		original_index = -1
+		exists = 0
+		beat = 0
+		pop = 0
 		joints = {}
-		for line in joint_lines:
 
-			splits = line.split (":")
-			
-			joint_name = int(splits[0])
-			rest = splits[1][2:-1]
+		### Step 1: make sure infile exists, open it ###
+		infile_name = jvid_filename + "/" + str(read_index) + ".s"
+		# print "infile name = " + infile_name
+ 		if not os.path.exists (infile_name):
+			break
+		infile = open (infile_name, 'r')
 
-			splits = rest.split(',')
-			x = float (splits[0])
-			y = float (splits[1])
-			z = float (splits[2])
+		### Step 2: read out the info from it ###
+		lines 	=  [l.strip() for l in infile.readlines ()]
 
-			joints[joint_name] = J_Joint (x, y, z, joint_name)
+		original_index = int(lines[0])
+		exists = int(lines[1])
+		if exists == 1:
+			beat = int(lines[2])
+			pop = int(lines[3])
 
-		#--- get pop ---
-		pop_line = [l for l in all_lines if 'p' in set(l)][0]
-		if '1' in set(pop_line): 
-			pop = 1
+			joint_lines = lines[4:]
+
+			for i in range(15):
+				joint_line = joint_lines [i].strip().split (',')
+				x = float(joint_line[0])
+				y = float(joint_line[1])
+				z = float(joint_line[2])
+				x_abs = float(joint_line[3])
+				y_abs = float(joint_line[4])
+				z_abs = float(joint_line[5])
+				joints[i] = J_Joint(x, y, z, x_abs, y_abs, z_abs, i)
+
 		else:
+			joints = None
+			beat = 0
 			pop = 0
 
-		#--- get beat ---
-		beat_line = [l for l in all_lines if 'b' in set(l)][0]
-		if '1' in set(beat_line): 
-			beat = 1
-		else:
-			beat = 0
-
-		#--- create/add new skeleton with joints ---
-		new_skeleton = J_Skeleton(timestamp, joints, pop=pop, beat=beat)
-		skeletons.append (new_skeleton)
-
-		#--- increment timestamp ---
-		timestamp += 1
-
-	f.close ()
+		skeleton = J_Skeleton (read_index, original_index, exists, beat, pop, joints)
+		skeletons.append (skeleton)
+		read_index += 1
 
 	return skeletons
-
-
+		
 
 
 # Function: write_out_skeletons
 # -----------------------------
 # prints out the skeletons to text files
-def write_out_skeletons (skeletons, outfile_name):
-	outfile = open(outfile_name, 'w')
-	for skeleton in skeletons:
+def write_out_skeletons (skeletons, jvid_filename):
+
+	write_index = 0
+	for skeleton in skeletons:	
+
+		outfile_name = jvid_filename + "/" + str(write_index) + ".s"
+		outfile = open(outfile_name, 'w')
 		outfile.write (skeleton.__str__())
+		outfile.close ()
+		write_index += 1
 	return
+
+
+
+if __name__ == "__main__":
+
+	infilename = '/Users/jhack/Programming/NI/ni_template/Recordings/jay_training.sync/Marked/video.jvid'
+	skeletons =	read_in_skeletons (infilename)
+
+
+

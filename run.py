@@ -15,96 +15,342 @@ from optparse import OptionParser
 
 #--- My files ---
 sys.path.append (os.path.join (os.getcwd(), 'python_backend'))
-from common_utilities import print_error, print_status
+from common_utilities import print_status, print_error, print_message, print_welcome
+from Recording import Recording
+from Trainer import Trainer
+from synchronize import Synchronizer
 
 #--- MODES ---
-RECORD_MODE = 0
-PLAY_MODE = 1
-MARK_BEATS_MODE = 2
-MARK_POPS_MODE = 3
-SYNCHRONIZE_MODE = 4
 mode_map = {
-	'r': 'record',
-	'm': 'mark',
-	'o': 'observe_marked',
-	's': 'sync',
-	'q': 'observe_synced'
-}
+	
+	#--- content creation ---
+	'r': 	'record',			#record a dance, with beats indicated on screen
+	't': 	'train',			#use a dance as a perfect example
+	's': 	'sync',				#apply synchronization procedures to it
 
+}
 
 #--- RECORDINGS ---
 recordings_dir = os.path.join (os.getcwd(), 'Recordings')
+existing_recordings = [l.split('.')[0] for l in os.listdir (recordings_dir)]
 
 
-# Function: create_new_sync_dir
-# -----------------------------
-# creates the shell of a .sync dir for a new recording
-def create_new_sync_dir (sync_dir_path):
+
+class Auto_Synchronizer:
+
+	#--- General Recordings Info ---
+	recordings_dir = None
+	all_recordings = []
+
+	#--- Selected Recording ---
+	selected_recording = None
+
+
+
+
+	#####################################################################################
+	#####################[ --- Constructor ---] #########################################
+	#####################################################################################
+
+	# Function: constructor
+	# ---------------------
+	# initializes the recordings_dir, all_recordings
+	def __init__ (self):
+
+		print_welcome ()
+
+		### Step 1: get the recordings directory ###
+		self.recordings_dir = os.path.join (os.getcwd(), 'Recordings')
+		if not os.path.exists (self.recordings_dir):
+			print_error ("Autosynch_Interface Initialization", "cannot find recordings directory")
+
+		### Step 2: get all of the recordings ###
+		self.get_all_recordings ()
+
+
+
+
+
+
+
+
+	#####################################################################################
+	#####################[ --- Dealing with recordings ---] #############################
+	#####################################################################################
+
+	# Function: get_recordings
+	# ---------------------------
+	# gets a recording object for each recording in recordings_dir
+	def get_all_recordings (self):
+
+		self.all_recordings = []
+
+		recording_names = [r.split('.')[0] for r in os.listdir (self.recordings_dir)]
+		for recording_name in recording_names:
+			new_recording = Recording (recording_name, os.path.join (self.recordings_dir, recording_name + '.sync'))
+			self.all_recordings.append (new_recording)
+
+
+	# Function: list_recordings
+	# -------------------------------
+	# lists all recordings that are already in existence,
+	# two to a row
+	def list_recordings (self):
+	
+		print_message ("########## Exising recordings: ##########")
+
+		num_printed = 0
+		for recording in existing_recordings:
+			print recording,
+			if num_printed % 2 == 0:
+				print "\n",
+			else:
+				print "				",
+			num_printed += 1
+		print "\n"
+
+
+	# Function: select_recording ():
+	# ------------------------------
+	# returns the recording that the user has selected
+	# (creates a new one if necessary)
+	def select_recording (self):
+
+		recording_names = [r.__str__() for r in self.all_recordings]
+		names_and_recordings = zip (recording_names, self.all_recordings)
+
+		### Step 1: ask them what they want to do ###
+		print_message ("Would you like to work with an existing recording? (y/n)")
+		answer = raw_input ("---> ")
+
+		if answer == 'y':
+			self.list_recordings ()
+			print_message ("Enter the name of the recording you wish to work with")
+			recording_name = raw_input ("---> ")
+			if not recording_name in set(existing_recordings):
+				print_message ("Error: the recording you entered, " + recording_name + ", doesn't exist yet.")
+				self.select_recording ()
+			else:
+				print_message ("Opening " + recording_name)
+				index = recording_names.index (recording_name)
+				self.selected_recording = self.all_recordings[index]
+
+		if answer == 'n':
+			print_message ("Enter the name of the new recording")
+			recording_name = raw_input ("---> ")
+			self.selected_recording = self.create_new_recording (recording_name)
+
+
+	# Function: create_new_sync_file
+	# -----------------------------
+	# creates the shell of a new recording and returns a Recording object that contains it
+	def create_new_recording (self, recording_name):
 		
-	### Step 1: create the top-level '.sync' directory ###
-	os.mkdir (sync_dir_path)
+		recording_filepath = os.path.join (recordings_dir, recording_name + '.sync')
+		if (os.path.exists (recording_filepath)):
+			print_error ("create_new_sync_dir", "specified file already exists")
 
-	### Step 2: make the raw/marked/synced directories, along with jvid directories ###
-	os.mkdir (os.path.join (sync_dir_path, "Raw"))
-	os.mkdir (os.path.join (sync_dir_path, "Raw/video.jvid"))
-	os.mkdir (os.path.join (sync_dir_path, "Marked"))
-	os.mkdir (os.path.join (sync_dir_path, "Marked/video.jvid"))	
-	os.mkdir (os.path.join (sync_dir_path, "Synced"))
-	os.mkdir (os.path.join (sync_dir_path, "Synced/video.jvid"))
+
+		### Step 2: create the top-level '.sync' directory ###
+		os.mkdir (recording_filepath)
+
+		### Step 2: make the raw/marked/synced directories, along with jvid directories ###
+		os.mkdir (os.path.join (recording_filepath, "Raw"))
+		os.mkdir (os.path.join (recording_filepath, "Raw/video.jvid"))
+		os.mkdir (os.path.join (recording_filepath, "Marked"))
+		os.mkdir (os.path.join (recording_filepath, "Marked/video.jvid"))
+		os.mkdir (os.path.join (recording_filepath, "Synced"))
+		os.mkdir (os.path.join (recording_filepath, "Synced/video.jvid"))
+
+		new_recording = Recording (recording_name, recording_filepath)
+		self.all_recordings.append (new_recording)
+		return new_recording
+
+
+
+
+
+
+
+
+	#####################################################################################
+	#####################[ --- Main Operation ---] ######################################
+	#####################################################################################
+	# Function: run
+	# -------------
+	# this function continuously applies the selected operation to your dance
+	def run (self):
+
+		### Step 1: record something if the file is new ###
+		if self.selected_recording.is_new ():
+			print_message ("Beginning recording")
+			self.record ()
+			print_message ("Finished recording")
+
+		### Step 2: have the user select an operation to apply to the file ###
+		selected_operation = self.select_operation ()
+
+		print_message ("Beginning operation: " + selected_operation.__name__)
+		selected_operation ()
+		print_message ("Finished operation: " + selected_operation.__name__)
+
+
+
+	# Function: select_operation
+	# --------------------------
+	# gets the user to select an option to apply to the existing file
+	def select_operation (self):
+
+		operations_map = {	'r': self.record,
+							't': self.train,
+							's': self.synchronize,
+							'w': self.watch,
+							'q': exit
+		}
+
+
+		print_message ("Select an operation to apply to this file")
+		print "	[ r ]: (re-)record something for this file\n"
+		print "	[ t ]: train a classifier based on this recording\n"
+		print "	[ s ]: mark and synchronize this recording\n"
+		print "	[ w ]: watch one of the recorings\n"
+		print "	[ q ]: quit\n"
+		selected_operation = raw_input ("--->")
+
+		if not selected_operation in operations_map.keys ():
+			print_message ("Error: didn't recognize that operation")
+			return self.select_operation ()
+		else:
+			if selected_operation == 'q':
+				print_message ("### EXITING PROGRAM ###")
+				exit ()
+			else:
+				return operations_map[selected_operation]
+
+
+	# Function: record
+	# ----------------
+	# runs the recording program, then returns
+	def record (self):
+
+		### Step 1: change into the correct directory ###
+		os.chdir (os.path.join (os.getcwd(), "Bin"))
+
+		### Step 2: build the correct command and use it ###
+		system_command = "./x64-release/ni_template record " + self.selected_recording.full_filepath
+		os.system (system_command)
+
+		### Step 3: update the recording's status ###
+		self.selected_recording.set_recorded ()
+
+		### Step 4: change back into the original directory ###
+		os.chdir (os.path.join (os.getcwd(), ".."))
+
+
+	# Function: train
+	# ---------------
+	# trains a classifier based on the raw recording 
+	def train (self):
+
+
+		self.trainer = Trainer (self.selected_recording.jvid_raw, self.selected_recording.name) 
+
+
+
+	# Function: synchronize
+	# ---------------------
+	# synchronize this recording
+	def synchronize (self):
+
+		synchronizer = Synchronizer (self.selected_recording.full_filepath, '/Users/jhack/Programming/NI/ni_template/python_backend/classifiers/jay_training.obj')
+
+		#--- FOR DEBUGGING ---
+		print "\n\n##########[ --- SYNCHRONIZER OUTPUT --- ]##########"
+		pops = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].pop]
+		beats = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].beat]
+		print "--- correspondences ---"
+		print synchronizer.correspondences
+		print "--- BEATS ---"
+		print beats
+		print "--- POPS ---"
+		print pops
+		print "\n\n"
+
+
+		### Step 3: get synchronized_skeletons ###
+		synchronizer.synchronize ()
+
+		### Step 4: write the output to a file ###
+		synchronizer.write_synchronized_jvid ()
+
+
+	# Function: watch
+	# ---------------
+	# entry point for watching a recording.
+	def watch (self):
+
+		jvids_map = {	'r': 'observe_raw',
+						'm': 'observe_marked',
+						's': 'observe_synced'
+		}
+
+
+		print_message ("Select a jvid file to play: ")
+		print "	[ r ]: raw recording\n"
+		print "	[ m ]: with pops marked\n"
+		print "	[ s ]: synchronized\n"
+		selection = raw_input ("--->")
+		
+		if not selection in jvids_map.keys ():
+			print_message ("Error: didn't recognize that option")
+			return self.watch ()
+
+		else:
+			
+			### Step 1: change into the correct directory ###
+			os.chdir (os.path.join (os.getcwd(), "Bin"))
+
+			### Step 2: build the correct command and use it ###
+			system_command = "./x64-release/ni_template " + jvids_map[selection] + " " + self.selected_recording.full_filepath
+			os.system (system_command)
+
+			### Step 4: change back into the original directory ###
+			os.chdir (os.path.join (os.getcwd(), ".."))	
+
+			return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
 
+	### Step 1: initialize the interface ###
+	autosynch = Auto_Synchronizer ()
 
-	### Step 1: set up the parser/get arguments ###
-	parser = OptionParser ()
-	#--- [-f filename]: specifies where to play from/record to ---
-	parser.add_option("-f", "--filename", action="store", type="string", dest="filename")
-	#--- [(-r|-p|-s)]: (play|record|synchronize) mode ---
-	parser.add_option ("-r", "--record", 		action="store_const", const=RECORD_MODE,		dest="mode", help="Instructs the program to make a new recording")
-	parser.add_option ("-p", "--play",			action="store_const", const=PLAY_MODE, 			dest="mode", help="Instructs the program to play a certain file; also allows you to mark the file")
-	parser.add_option ("-s", "--synchronize", 	action="store_const", const=SYNCHRONIZE_MODE, 	dest="mode", help="Instructs the program to perform synchronization on the recording")
-	(options, args) = parser.parse_args (sys.argv)
+	### Step 2: determine the recording they are working with ###
+	autosynch.select_recording ()
 
-	### Step 2: Get mode ###
-	if options.mode == None:
-		selected_mode = raw_input ("--- AVAILABLE MODES ---\n- r = record mode\n- m = mark mode\n- o = observe marked mode\n- s = synchronize mode\n- q = observe synchronized mode\nEnter a mode: ")
-		if not selected_mode in mode_map.keys ():
-			print_error ("Invalid mode", "Enter one of the options listed above. exiting.")
-		else:
-			options.mode = mode_map[selected_mode]
-
-	### Step 3: Get filenames ###
-	if options.filename == None:
-		selected_filename = raw_input ("Enter the name of a recording:\n(new one if you are recording, existing one otherwise): ")
-		options.filename = selected_filename
-
-	### Step 4: make sure filename is valid for this operation ###
-	sync_dir_path = os.path.join (os.path.join (recordings_dir, options.filename + ".sync"))
-	if options.mode == 'record':
-		if os.path.exists (sync_dir_path):
-			print_error ("the filename you entered already exists", "delete that shit and try again")
-		else:
-			create_new_sync_dir (sync_dir_path)
-	else:
-		if not os.path.exists (sync_dir_path):
-			print_error ("the filename you entered does not exist", "gotta record that shit first, breh")
+	### Step 3: run indefinitely ###
+	while True:
+		autosynch.run ()
 
 
 
-
-
-
-
-
-	### Step 5: get the arguments to pass to the C++ program ###
-	print_status ("CLI", "starting program")
-
-	cpp_args = [options.mode, sync_dir_path]
-	os.chdir (os.path.join(os.getcwd(), "Bin"))
-	system_command = "./x64-release/ni_template " + ' '.join(cpp_args)
-	print_status ("CLI", "Executing command: " + system_command)
-	os.system(system_command);
 
 
 

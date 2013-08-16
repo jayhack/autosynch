@@ -14,7 +14,8 @@ using namespace std;
  * then stop program operation by asserting false.
  */
 void print_error (const char* top_string, const char* bottom_string) {
-	cout << "Error: " << top_string << endl << "--------------------" << endl << bottom_string << endl;
+	
+	cout << "	Error: " << top_string << endl << "	--------------------" << endl << "	" << bottom_string << endl;
 }
 
 
@@ -23,7 +24,7 @@ void print_error (const char* top_string, const char* bottom_string) {
  * prints out a status line
  */
 void print_status (const char* stage_name, const char* status_message) {
-	cout << "-----> " << stage_name << ": " << status_message << endl;
+	cout << "	-----> " << stage_name << ": " << status_message << endl;
 	return;
 }
 

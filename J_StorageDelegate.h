@@ -32,7 +32,7 @@
 #define MAX_FILENAME_LENGTH 150
 
 #define RECORD_MODE 0
-#define MARK_MODE 1
+#define OBSERVE_RAW_MODE 1
 #define OBSERVE_MARKED_MODE 2
 #define OBSERVE_SYNCHRONIZED_MODE 3
 
@@ -58,7 +58,6 @@ private:
 	/*--- Skel ---*/	
 	string in_directory;
 	string out_directory;
-
 
 
 

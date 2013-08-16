@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
 
 	/*### Step 1: make sure the arguments are correct ###*/
-	if (argc != 3) print_error ("Incorrect usage", "try ./ (record|mark|observe_marked|.observe_synced) [.sync filename, without .sync]");
+	if (argc != 3) print_error ("Incorrect usage", "try ./ (record|observe_raw|observe_marked|observe_synced) [.sync filename, without .sync]");
 	char *mode_string 	= argv[1];
 	char *file_path		= argv[2];
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 	}
 	else {
 		int mode = -1;
-		if 			(strcmp (mode_string, "mark") == 0)			 	mode = MARK_MODE;
+		if 			(strcmp (mode_string, "observe_raw") == 0)		mode = OBSERVE_RAW_MODE;
 		else if 	(strcmp (mode_string, "observe_marked") == 0) 	mode = OBSERVE_MARKED_MODE;
 		else if 	(strcmp (mode_string, "observe_synced") == 0) 	mode = OBSERVE_SYNCHRONIZED_MODE;
 		else 		print_error ("MAIN", "Could not parse the mode you entered");
