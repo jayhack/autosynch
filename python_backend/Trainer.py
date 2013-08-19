@@ -20,21 +20,8 @@ from common_utilities import print_error, print_status
 from J_Joint import J_Joint
 from J_Skeleton import J_Skeleton
 from read_write import read_in_skeletons, write_out_skeletons 
+from add_derivatives import Derivative, add_derivatives_to_skeletons
 
-
-
-# Class: Derivative
-# -----------------
-# used in classification
-class Derivative:
-	x = None
-	y = None
-	z = None
-
-	def __init__ (self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
 
 class Trainer:
 
@@ -63,7 +50,7 @@ class Trainer:
 		self.skeletons_raw = read_in_skeletons (jvid_filename)
 
 		### Step 2: add derivatives to them (fills skeletons_with_derivs) ###
-		self.add_derivatives_to_skeletons ()
+		self.skeletons_with_derivs = add_derivatives_to_skeletons (self.skeletons_raw, self.fd_interval_1, self.fd_interval_2, self.fd_interval_1, self.fd_interval_2)
 
 		### Step 3: put it into training data form ###
 		(X, Y) = self.get_training_data ()
@@ -103,75 +90,6 @@ class Trainer:
 			# print_status ("Trainer", "Evaluating classifier")
 			# self.evaluate_classifier (classifier, X_test, Y_test)
 
-
-
-
-	# Function: get_first_derivatives
-	# -------------------------------
-	# given a list of all skeletons, this returns a list of first derivatives
-	# derivative_length: the number of elements back you go in order to get the deriv
-	# - NOTE: framerate for this bitch is apparently 30 frames/second
-	def get_derivatives (self, entries, derivative_length):
-
-		cur_index = derivative_length
-		prev_index = 0
-		considering_entries = entries[cur_index:]
-
-		first_derivatives = []
-
-		prev = entries[prev_index]
-		for cur in considering_entries:
-
-			derivs = {}
-			if cur:
-				for i in cur.keys():
-
-
-					dx_dt = cur[i].x - prev[i].x
-					dy_dt = cur[i].y - prev[i].y
-					dz_dt = cur[i].z - prev[i].z
-
-					derivs[i] = Derivative (dx_dt, dy_dt, dz_dt)
-
-				prev_index += 1
-				prev = entries[prev_index]
-
-			first_derivatives.append (derivs)
-
-		return first_derivatives
-
-
-
-	# Function: add_derivatives_to_skeletons
-	# --------------------------------------
-	# fills self.skeletons_with_derivs
-	def add_derivatives_to_skeletons (self):
-
-
-		if (self.fd_interval_1 >= self.fd_interval_2):
-			print_error ("fd_interval_1 is <= fd_interval_2", "make sure that 1 is smaller than 2")
-		if (self.sd_interval_1 >= self.sd_interval_2):
-			print_error ("sd_interval_1 is <= sd_interval_2", "make sure that 1 is smaller than 2")
-
-		### Step 1: get the first and second derivatives ###
-		joints = [s.joints for s in self.skeletons_raw]
-		# print joints
-		fd_1_raw 	=	self.get_derivatives 	(joints, 	self.fd_interval_1)
-		fd_2_raw	=	self.get_derivatives 	(joints, 	self.fd_interval_2)
-		sd_1_raw 	= 	self.get_derivatives 	(fd_1_raw, 	self.sd_interval_1)
-		sd_2_raw	= 	self.get_derivatives 	(sd_1_raw, 	self.sd_interval_2)	
-
-		### Step 4: associate them with the original skeletons ###
-		self.skeletons_with_derivs = self.skeletons_raw[self.fd_interval_2 + self.sd_interval_2:]
-		fd_1 = fd_1_raw [self.sd_interval_2:]
-		fd_2 = fd_2_raw [self.sd_interval_2:]
-		sd_1 = sd_1_raw
-		sd_2 = sd_2_raw
-		for i in range(len(self.skeletons_with_derivs)):
-			self.skeletons_with_derivs[i].fd_1 = fd_1[i]
-			self.skeletons_with_derivs[i].fd_2 = fd_2[i]
-			self.skeletons_with_derivs[i].sd_1 = sd_1[i]
-			self.skeletons_with_derivs[i].sd_2 = sd_2[i]
 
 
 

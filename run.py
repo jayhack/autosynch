@@ -20,6 +20,7 @@ from Recording import Recording
 from Trainer import Trainer
 from synchronize import Synchronizer
 
+
 #--- MODES ---
 mode_map = {
 	
@@ -262,19 +263,28 @@ class Auto_Synchronizer:
 	# synchronize this recording
 	def synchronize (self):
 
-		synchronizer = Synchronizer (self.selected_recording.full_filepath, '/Users/jhack/Programming/NI/ni_template/python_backend/classifiers/jay_training.obj')
+		### Step 1: create the synchronizer ###
+		synchronizer = Synchronizer (self.selected_recording.full_filepath, '/Users/jhack/Programming/NI/ni_template/python_backend/classifiers/toprock_front_training.obj')
+
+		### Step 2: get correspondences (which pop maps to which beat, and mark pops appropriately) ###
+		synchronizer.get_correspondences ()
+
+		### Step 3: write out the pops ###
+		synchronizer.write_pops_marked_jvid ()
+
+
 
 		#--- FOR DEBUGGING ---
-		print "\n\n##########[ --- SYNCHRONIZER OUTPUT --- ]##########"
-		pops = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].pop]
-		beats = [i for i in range(len(synchronizer.skeletons)) if synchronizer.skeletons[i].beat]
-		print "--- correspondences ---"
-		print synchronizer.correspondences
-		print "--- BEATS ---"
-		print beats
-		print "--- POPS ---"
-		print pops
-		print "\n\n"
+		# print "\n\n##########[ --- SYNCHRONIZER OUTPUT --- ]##########"
+		# pops = [i for i in range(len(synchronizer.synchronized_skeletons)) if synchronizer.synchronized_skeletons[i].pop]
+		# beats = [i for i in range(len(synchronizer.synchronized_skeletons)) if synchronizer.synchronized_skeletons[i].beat]
+		# print "--- correspondences ---"
+		# print synchronizer.correspondences
+		# print "--- BEATS ---"
+		# print beats
+		# print "--- POPS ---"
+		# print pops
+		# print "\n\n"
 
 
 		### Step 3: get synchronized_skeletons ###

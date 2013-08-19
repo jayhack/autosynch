@@ -43,3 +43,18 @@ def print_error (top_string, bottom_string):
 def print_status (stage, status):
 	
 	print "-----> " + stage + ": " + status
+
+
+
+# Function: print_inner_status
+# ----------------------------
+# prints out a status message for inner programs
+def print_inner_status (stage, status):
+	
+	print "-----> " + stage + ": " + status
+
+
+
+
+
+

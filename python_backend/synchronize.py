@@ -21,12 +21,12 @@ from operator import itemgetter
 from sklearn.linear_model import LogisticRegression
 
 #--- my files ---
-from common_utilities import print_error, print_status
+from common_utilities import print_error, print_inner_status
 from J_Joint import J_Joint
 from J_Skeleton import J_Skeleton
 from read_write import read_in_skeletons, write_out_skeletons 
-from train_classifier import add_derivatives_to_skeletons
-from mark_pops import Pop_Marker
+from Trainer import add_derivatives_to_skeletons
+from mark_pops import mark_pop_probabilities, Beat_Interval
 
 
 class Synchronizer:
@@ -36,11 +36,12 @@ class Synchronizer:
 	jvid_filename_pops_marked 	= None
 	jvid_filename_synchronized 	= None
 
-	#--- Pop_Marker ---
-	marker = None
+	#--- Classifier ---
+	classifier = None
 
 	#--- Skeletons ---
 	original_skeletons 		= None	#the original 			(input)
+	marked_skeletons		= None	#the marked 			(intermediate)
 	synchronized_skeletons	= None	#synchronized version 	(output)
 
 	#--- correspondences between beats and pops ---
@@ -53,37 +54,37 @@ class Synchronizer:
 
 	# Function: constructor
 	# ---------------------
-	# reads in all the relevant information, then will synchronize
+	# reads in all of the skeletons and adds derivatives to them.
 	def __init__ (self, sync_directory, classifier_name):
-		
+
 		### Step 1: filename management ###
-		print_status ("Synchronizer", "looking at file " + sync_directory);
-		self.jvid_filename_raw 			= os.path.join(sync_directory, 'Marked/video.jvid')
-		self.jvid_filename_pops_marked 	= os.path.join(sync_directory, 'Marked/video_with_pops.jvid')
+		print_inner_status ("Initialization", "Looking at file " + sync_directory)
+		self.jvid_filename_raw 				= os.path.join(sync_directory, 'Raw/video.jvid')
+		self.jvid_filename_pops_marked 		= os.path.join(sync_directory, 'Marked/video.jvid')
 		self.jvid_filename_synchronized 	= os.path.join(sync_directory, 'Synced/video.jvid')
-		# print "	### Raw jvid: " + self.jvid_filename_raw
-		# print "	### Pops_Marked jvid: " + self.jvid_filename_pops_marked
-		# print "	### Synchronized jvid: " + self.jvid_filename_synchronized
 
+		### Step 2: load the classifier ###
+		print_inner_status ("Initialization", "Unpickling the classifier")
+		self.classifier = pickle.load (open('/Users/jhack/Programming/NI/ni_template/python_backend/classifiers/toprock_front_training.obj', 'r'))
 
-		### Step 1: get the original skeletons ###
-		self.skeletons = read_in_skeletons (self.jvid_filename_raw)
-		# for skeleton in self.skeletons:
-			# print skeleton.joints
+		### Step 2: get the original skeletons ###
+		print_inner_status ("Initialization", "Getting input skeletons")
+		self.original_skeletons = read_in_skeletons (self.jvid_filename_raw)
 
-		### Step 1: set up the pop marker, get back marked skeletons ###
-		self.marker = Pop_Marker (self.skeletons, classifier_name)
-		self.marker.mark_pops ()
-		self.skeletons_marked = self.marker.skeletons
+		### Step 3: add derivatives to them ###
+		print_inner_status ("Initialization", "Adding derivatives to skeletons")		
+		self.original_skeletons = add_derivatives_to_skeletons(self.original_skeletons, 5, 10, 5, 10)
 
-		### Step 2: save the intermediary skeletons ###
-		write_out_skeletons(self.skeletons_marked, self.jvid_filename_pops_marked)
-
-		### Step 2: find the correspondance between beats and pops ###
-		self.get_correspondences_naive ()
+		### Step 4: add pop probabilities to them ###
+		print_inner_status ("Initialization", "Adding pop probabilities to skeletons")
+		self.original_skeletons = mark_pop_probabilities (self.original_skeletons, self.classifier)
 
 
 
+
+	#####################################################################################
+	#####################[ --- Getting Correspondences ---] #############################
+	#####################################################################################
 
 	# Function: get_closest_element
 	# -----------------------------
@@ -129,9 +130,16 @@ class Synchronizer:
 
 		self.correspondences = []
 
+		### check this out - i think you should be looking at skeletons_marked! ###
+
 		### Step 1: get lists of raw beat, pop indices ###
-		beat_indeces_raw 	= [i for i in range(len(self.skeletons)) if self.skeletons[i].beat]
-		pop_indices_raw 	= [i for i in range(len(self.skeletons)) if self.skeletons[i].pop]
+		beat_indeces_raw 	= [i for i in range(len(self.marked_skeletons)) if self.marked_skeletons[i].beat]
+		pop_indices_raw 	= [i for i in range(len(self.marked_skeletons)) if self.marked_skeletons[i].pop]
+
+		print "### Beat indeces raw: "
+		print beat_indeces_raw
+		print "### Pop indeces raw: "
+		print pop_indices_raw
 
 		pop_list = [(i, self.skeletons[i].pop_probability) for i in range(len(self.skeletons)) if self.skeletons[i].pop]
 
@@ -157,7 +165,7 @@ class Synchronizer:
 	# -------------------------------------------
 	# gets the best possible pairing between beats/pops in a *less* naive fashion;
 	# (Greedy algorithm, where each beat choooses in sequence the best pop by proximity
-	# *and* the value of the pop
+	# *and* the value of the pop)
 	def get_correspondences_less_naive (self):
 
 		self.correspondences = []
@@ -185,6 +193,74 @@ class Synchronizer:
 			else:
 				skeleton.pop = False
 
+
+
+	# Function: get_correspondences
+	# -----------------------------
+	# gets correspondences based on value alone
+	def get_correspondences (self):
+
+		print_inner_status ("Get correspondences", "getting the intervals")
+
+		### Step 1: get all of the beat indeces, pop indeces ###
+		self.beat_indeces = [i for i in range(len(self.original_skeletons)) if self.original_skeletons[i].beat == 1]
+
+		beat_intervals = []
+
+		### Step 2: get a list of beat intervals ###
+		prev_beat = 0
+		for i in range (len(self.beat_indeces) - 1):
+			cur_beat 	= self.beat_indeces [i]
+			next_beat 	= self.beat_indeces [i + 1] 
+
+			beat_interval = Beat_Interval (cur_beat, prev_beat, next_beat)
+			print beat_interval
+			beat_intervals.append (beat_interval)
+
+			prev_beat = cur_beat
+
+
+
+		### for each beat_interval, iterate through each skeleton and select the top prob ###
+		self.correspondences = []
+		for beat_interval in beat_intervals:
+
+			max_prob = -1.0
+			best_index = -1
+			for i in range (beat_interval.interval_start, beat_interval.interval_end):
+				pop_probability = self.original_skeletons[i].pop_probability
+				print i, ": ", pop_probability
+				if pop_probability > max_prob:
+					best_index = i
+					max_prob = pop_probability
+
+			self.correspondences.append ((beat_interval.beat_index, best_index))
+			print "### max_prob: ", max_prob
+			print "### best_index: ", best_index
+
+
+
+		### Success up to here - correspondences is now filled with (beat, best pop) index pairs ###
+		### Now mark beat/pop and write it out
+		self.marked_skeletons = self.original_skeletons
+		self.pop_indeces = [i[1] for i in self.correspondences]
+		for i in range(len(self.marked_skeletons)):
+			if i in set(self.pop_indeces):
+				self.marked_skeletons[i].pop = 1
+			else:
+				self.marked_skeletons[i].pop = 0
+
+
+
+
+
+
+
+
+
+	#####################################################################################
+	#####################[ --- Synchronization ---] #####################################
+	#####################################################################################
 
 	# Function: get_synchronized_indeces
 	# ---------------------------
@@ -230,7 +306,7 @@ class Synchronizer:
 		### Step 2: fill up synchronized_skeletons ###
 		self.synchronized_skeletons = []
 		for index in self.synchronized_indeces:
-			self.synchronized_skeletons.append (self.skeletons[index])
+			self.synchronized_skeletons.append (self.marked_skeletons[index])
 
 		### Step 3: Set all beat values to false ###
 		for skeleton in self.synchronized_skeletons:
@@ -238,10 +314,48 @@ class Synchronizer:
 
 		### Step 3: put the beats in where they should be ###
 		for i in range (len(self.synchronized_skeletons)):
-			if i in set(self.beat_indices):
+			if i in set(self.beat_indeces):
 				self.synchronized_skeletons[i].beat = True
 
 		return
+
+
+
+
+	#####################################################################################
+	#####################[ --- Writing Output ---] ######################################
+	#####################################################################################
+
+	# Function: write_pops_marked_jvid
+	# --------------------------------
+	# once mark_pops has already been called, this will write out the pops-marked version
+	def write_pops_marked_jvid (self):
+
+		for index, skeleton in enumerate (self.marked_skeletons):
+			
+			original_index = skeleton.original_index
+
+			#--- get filenames ---
+			skeleton_filename_new 	= os.path.join (self.jvid_filename_pops_marked, str(index) + '.s')
+			color_filename_new 		= os.path.join (self.jvid_filename_pops_marked, str(index) + '.c')
+			depth_filename_new 		= os.path.join (self.jvid_filename_pops_marked, str(index) + '.d')			
+
+			color_filename_old 		= os.path.join (self.jvid_filename_raw, str(original_index) + '.c')
+			depth_filename_old 		= os.path.join (self.jvid_filename_raw, str(original_index) + '.d')
+
+			#--- write out skeleton ---
+			skeleton_file = open (skeleton_filename_new, 'w')
+			skeleton_file.write (skeleton.__str__())
+			skeleton_file.close ()
+
+			#--- copy over the synced files ---
+			# print color_filename_old + " -> " + color_filename_new
+			if (os.path.exists (color_filename_new)): 
+				os.remove (color_filename_new)
+			if (os.path.exists (depth_filename_new)):
+				os.remove (depth_filename_new)
+			os.symlink (color_filename_old, color_filename_new);
+			os.symlink (depth_filename_old, depth_filename_new);
 
 
 	# Function: write_synchronized_jvid
@@ -267,9 +381,7 @@ class Synchronizer:
 			skeleton_file.close ()
 
 			#--- copy over the synced files ---
-			print color_filename_old + " -> " + color_filename_new
-			# shutil.copy (color_filename_old, color_filename_new)
-			# shutil.copy (depth_filename_old, depth_filename_new)
+			# print color_filename_old + " -> " + color_filename_new
 			if (os.path.exists (color_filename_new)): 
 				os.remove (color_filename_new)
 			if (os.path.exists (depth_filename_new)):
@@ -312,6 +424,7 @@ if __name__ == "__main__":
 	synchronizer.synchronize ()
 
 	### Step 4: write the output to a file ###
+	synchronizer.write_pops_marked_jvid ()
 	synchronizer.write_synchronized_jvid ()
 
 

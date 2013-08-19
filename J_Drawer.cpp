@@ -17,7 +17,7 @@
 J_Drawer::J_Drawer () {
 
 	/*--- initialize draw mode ---*/
-	draw_mode = DRAW_DEPTH;
+	draw_mode = DRAW_COLOR;
 
 	/*--- initialize colors ---*/
 	Colors[0][0] = 1;
@@ -235,42 +235,20 @@ void J_Drawer::Draw_J_Limb (J_Joint* joint1, J_Joint* joint2, int color) {
 	coordinates[3] *= GL_WIN_SIZE_X/(float)g_nXRes;
 	coordinates[4] *= GL_WIN_SIZE_Y/(float)g_nYRes;
 
-	if (joint1->getPositionConfidence() == 1 && joint2->getPositionConfidence() == 1)
-	{
-		glColor3f(1.0f - Colors[color][0], 1.0f - Colors[color][1], 1.0f - Colors[color][2]);
-	}
-	else if (joint1->getPositionConfidence() < 0.5f || joint2->getPositionConfidence() < 0.5f)
-	{
-		return;
-	}
-	else
-	{
-		glColor3f(.5, .5, .5);
-	}
+	/*### Line color ###*/
+	glColor3f(0.0f, 1.0f, 0.0f);
 	glPointSize(2);
 	glVertexPointer(3, GL_FLOAT, 0, coordinates);
 	glDrawArrays(GL_LINES, 0, 2);
-
 	glPointSize(10);
-	if (joint1->getPositionConfidence() == 1)
-	{
-		glColor3f(1.0f - Colors[color][0], 1.0f - Colors[color][1], 1.0f - Colors[color][2]);
-	}
-	else
-	{
-		glColor3f(.5, .5, .5);
-	}
+
+	/*### half of the vertexes...? ###*/
+	glColor3f (0.0f, 1.0f, 0.0f);
 	glVertexPointer(3, GL_FLOAT, 0, coordinates);
 	glDrawArrays(GL_POINTS, 0, 1);
 
-	if (joint2->getPositionConfidence() == 1)
-	{
-		glColor3f(1.0f - Colors[color][0], 1.0f - Colors[color][1], 1.0f - Colors[color][2]);
-	}
-	else
-	{
-		glColor3f(.5, .5, .5);
-	}
+	/*### other half of vertexes ###*/
+	glColor3f (0.0f, 1.0f, 0.0f);
 	glVertexPointer(3, GL_FLOAT, 0, coordinates+3);
 	glDrawArrays(GL_POINTS, 0, 1);
 }
@@ -350,7 +328,7 @@ void J_Drawer::Draw_J_Skeleton (J_Skeleton *skeleton) {
  */
 void J_Drawer::indicate_beat () {
 
-	glColor3f(0.0f, 1.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
 	
 	float coordinates[] =
 	{
@@ -382,7 +360,7 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
 
 	nite::BoundingBox bounding_box = skeleton->getBoundingBox ();
 
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
 
 	float coordinates[] =
 	{
@@ -401,6 +379,7 @@ void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
 	coordinates[10] *= GL_WIN_SIZE_Y/(float)g_nYRes;
 
 	glPointSize(2);
+	glLineWidth(3.0f);
 	glVertexPointer(3, GL_FLOAT, 0, coordinates);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 }

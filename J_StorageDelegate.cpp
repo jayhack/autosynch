@@ -395,14 +395,22 @@ J_Frame * J_StorageDelegate::read() {
 	depth_infile.open (depth_filepath.c_str());
 	color_infile.open (color_filepath.c_str());
 
+
+	/*### DEBUG: make sure it is reading in the right files ###*/
+	// cout << "		-------------------------------" << endl;
+	// cout << "		# Skeleton infile: " << skeleton_filepath.c_str () << endl;
+	// cout << "		# depth infile: " << depth_filepath.c_str () << endl;
+	// cout << "		# color infile: " << color_filepath.c_str () << endl;
+	// if (!skeleton_infile.is_open()) cout << "		(skeleton infile isn't opening)" << endl;
+	// if (!color_infile.is_open()) cout << "		(color infile isn't opening)" << endl;
+	// if (!depth_infile.is_open()) cout << "		(depthx infile isn't opening)" << endl;	
+
+
 	/*### Step 2: check if they are open ###*/
 	if (!skeleton_infile.is_open () || !depth_infile.is_open () || !color_infile.is_open ()) {
 		return NULL;
 	}
 
-	// cout << "		### Skel infile: " << skeleton_filepath.c_str() << endl;
-	// cout << "		### Depth infile: " << depth_filepath.c_str () << endl;
-	// cout << "		### Color infile: " << color_filepath.c_str () << endl;
 
 	/*### Step 3: write the contents to each of them ###*/
 	J_Skeleton * 		skeleton 	= read_skeleton 	(skeleton_infile);
