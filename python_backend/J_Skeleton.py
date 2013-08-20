@@ -114,19 +114,19 @@ class J_Skeleton:
 		#########################################################
 
 		for deriv in self.fd_1.values ():
-			features.append (deriv.x)
-			features.append (deriv.y)
-			features.append (deriv.z)
+			features.append (abs(deriv.x))
+			features.append (abs(deriv.y))
+			features.append (abs(deriv.z))
 
 		# for deriv in self.fd_2.values ():
+			# features.append (abs(deriv.x))
+			# features.append (abs(deriv.y))
+			# features.append (abs(deriv.z))
+	
+		# for deriv in self.sd_1.values ():
 			# features.append (deriv.x)
 			# features.append (deriv.y)
-			# features.append (deriv.z)	
-	
-		for deriv in self.sd_1.values ():
-			features.append (deriv.x)
-			features.append (deriv.y)
-			features.append (deriv.z)
+			# features.append (deriv.z)
 
 		# for deriv in self.sd_2.values ():
 			# features.append (deriv.x)
