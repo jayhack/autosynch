@@ -152,63 +152,61 @@ class J_Skeleton:
 		right_foot = self.joints[14]
 
 		# #--- upper body: diff between elbow/shoulder ---
-		# features.append (abs(left_shoulder.x - left_elbow.x))
-		# features.append (abs(left_shoulder.y - left_elbow.y))
-		# features.append (abs(left_shoulder.z - left_elbow.z))
-		# features.append (abs(right_shoulder.x - right_elbow.x))
-		# features.append (abs(right_shoulder.y - right_elbow.y))		
-		# features.append (abs(right_shoulder.z - right_elbow.z))
+		features.append ((left_shoulder.x - left_elbow.x))
+		features.append ((left_shoulder.y - left_elbow.y))
+		features.append ((left_shoulder.z - left_elbow.z))
+		features.append ((right_shoulder.x - right_elbow.x))
+		features.append ((right_shoulder.y - right_elbow.y))		
+		features.append ((right_shoulder.z - right_elbow.z))
 
 		# #--- upper body: diff between right/left hand ---
-		# features.append (abs(left_hand.x - right_hand.x))
-		# features.append (abs(left_hand.y - right_hand.y))
-		# features.append (abs(left_hand.z - right_hand.z))
+		features.append ((left_hand.x - right_hand.x))
+		features.append ((left_hand.y - right_hand.y))
+		features.append ((left_hand.z - right_hand.z))
 
 		# #--- upper body: diff between right/left elbow ---
-		# features.append (abs(left_elbow.x - right_elbow.x))
-		# features.append (abs(left_elbow.y - right_elbow.y))
-		# features.append (abs(left_elbow.z - right_elbow.z))		
+		features.append ((left_elbow.x - right_elbow.x))
+		features.append ((left_elbow.y - right_elbow.y))
+		features.append ((left_elbow.z - right_elbow.z))		
 
 		# #--- upper body: diff between hand/elbow ---
-		# features.append (abs(left_elbow.x - left_hand.x))
-		# features.append (abs(left_elbow.y - left_hand.y))
-		# features.append (abs(left_elbow.z - left_hand.z))
-		# features.append (abs(right_elbow.x - right_hand.x))
-		# features.append (abs(right_elbow.y - right_hand.y))
-		# features.append (abs(right_elbow.z - right_hand.z))			
+		features.append ((left_elbow.x - left_hand.x))
+		features.append ((left_elbow.y - left_hand.y))
+		features.append ((left_elbow.z - left_hand.z))
+		features.append ((right_elbow.x - right_hand.x))
+		features.append ((right_elbow.y - right_hand.y))
+		features.append ((right_elbow.z - right_hand.z))			
 
 
 
 		#--- lower body: diff between hip/knee ---
-		features.append (abs(left_hip.x - left_knee.x))
-		features.append (abs(left_hip.y - left_knee.y))
-		features.append (abs(left_hip.z - left_knee.z))			
-		features.append (abs(right_hip.x - right_knee.x))
-		features.append (abs(right_hip.y - right_knee.y))
-		features.append (abs(right_hip.z - right_knee.z))						
+		features.append ((left_hip.x - left_knee.x))
+		features.append ((left_hip.y - left_knee.y))
+		features.append ((left_hip.z - left_knee.z))			
+		features.append ((right_hip.x - right_knee.x))
+		features.append ((right_hip.y - right_knee.y))
+		features.append ((right_hip.z - right_knee.z))						
 
 		#--- lower body: diff between knee/foot ---
-		features.append (abs(left_knee.x - left_foot.x))
-		features.append (abs(left_knee.y - left_foot.y))
-		features.append (abs(left_knee.z - left_foot.z))			
-		features.append (abs(right_knee.x - right_foot.x))
-		features.append (abs(right_knee.y - right_foot.y))
-		features.append (abs(right_knee.z - right_foot.z))
+		features.append ((left_knee.x - left_foot.x))
+		features.append ((left_knee.y - left_foot.y))
+		features.append ((left_knee.z - left_foot.z))			
+		features.append ((right_knee.x - right_foot.x))
+		features.append ((right_knee.y - right_foot.y))
+		features.append ((right_knee.z - right_foot.z))
 
 		#--- lower body: diff between right/left knee ---
-		features.append (abs(left_knee.x - right_knee.x))
-		features.append (abs(left_knee.y - right_knee.y))
-		features.append (abs(left_knee.z - right_knee.z))			
+		features.append ((left_knee.x - right_knee.x))
+		features.append ((left_knee.y - right_knee.y))
+		features.append ((left_knee.z - right_knee.z))			
 
 		#--- lower body: diff between right/left foot ---
-		features.append (abs(left_foot.x - right_foot.x))
-		features.append (abs(left_foot.y - right_foot.y))
-		features.append (abs(left_foot.z - right_foot.z))					
+		features.append ((left_foot.x - right_foot.x))
+		features.append ((left_foot.y - right_foot.y))
+		features.append ((left_foot.z - right_foot.z))					
 
 
 		return features
-
-
 
 
 

@@ -152,8 +152,11 @@ class Autosynch:
 		#### Step 3: fill all_examples with appropriate training data ###
 		self.all_examples = []
 		for index, example in enumerate(self.positive_examples):
-			# self.all_examples.append ((example, labels[index]))
-			self.all_examples.append ((example, 'pop'))
+
+			self.all_examples.append ((example, labels[index]))		# multi-class classification
+			# self.all_examples.append ((example, 'pop'))			# binary classification
+
+
 		for example in self.negative_examples:
 			self.all_examples.append ((example, 'not_a_pop'))
 
@@ -223,8 +226,8 @@ class Autosynch:
 			for i in range (beat_interval.interval_start, beat_interval.interval_end):
 				pop_probability = self.original_skeletons[i].pop_probability
 				print i, ": ", pop_probability
-				for index, p in enumerate(pop_probability[1:]):
-				# for index, p in enumerate (pop_probability[:-1])
+				# for index, p in enumerate(pop_probability[1:]): 	#use this for binary classification
+				for index, p in enumerate (pop_probability[:-1]):	#use this for multiple-class classification
 					if p > best_prob:
 						best_index = i
 						best_prob = p
