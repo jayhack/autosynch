@@ -28,7 +28,7 @@
 
 /*--- Constants ---*/
 #define MAX_FILENAME_LENGTH 150
-#define FRAMES_PER_BEAT 30 			//program will mark a 'beat' every 15 frames
+#define FRAMES_PER_BEAT 20 			//program will mark a 'beat' every 15 frames
 
 
 /*--- Namespaces ---*/

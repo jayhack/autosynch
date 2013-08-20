@@ -57,7 +57,7 @@ def mark_pop_probabilities (skeletons, classifier):
 	for skeleton_index, skeleton in enumerate(skeletons):
 
 		feature_vector = skeleton.get_feature_vector ();
-		pop_probability = classifier.predict_proba(feature_vector)[0][1]
+		pop_probability = classifier.predict_proba(feature_vector)[0]
 		skeleton.pop_probability = pop_probability
 
 	return skeletons

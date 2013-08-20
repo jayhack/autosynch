@@ -18,7 +18,7 @@ sys.path.append (os.path.join (os.getcwd(), 'python_backend'))
 from common_utilities import print_status, print_error, print_message, print_welcome
 from Recording import Recording
 from Trainer import Trainer
-from synchronize import Synchronizer
+from Autosynch import Autosynch
 
 
 #--- MODES ---
@@ -37,7 +37,7 @@ existing_recordings = [l.split('.')[0] for l in os.listdir (recordings_dir)]
 
 
 
-class Auto_Synchronizer:
+class Autosynch_Interface:
 
 	#--- General Recordings Info ---
 	recordings_dir = None
@@ -253,9 +253,7 @@ class Auto_Synchronizer:
 	# trains a classifier based on the raw recording 
 	def train (self):
 
-
-		self.trainer = Trainer (self.selected_recording.jvid_raw, self.selected_recording.name) 
-
+		Autosynch (self.selected_recording.full_filepath, self.selected_recording.name + '.obj', 'train')
 
 
 	# Function: synchronize
@@ -263,35 +261,20 @@ class Auto_Synchronizer:
 	# synchronize this recording
 	def synchronize (self):
 
-		### Step 1: create the synchronizer ###
-		synchronizer = Synchronizer (self.selected_recording.full_filepath, '/Users/jhack/Programming/NI/ni_template/python_backend/classifiers/toprock_front_training.obj')
+		### Step 1: create the autosynch ###
+		autosynch = Autosynch (self.selected_recording.full_filepath, 'toprock_front_training.obj', 'synchronize')
 
 		### Step 2: get correspondences (which pop maps to which beat, and mark pops appropriately) ###
-		synchronizer.get_correspondences ()
+		autosynch.get_correspondences ()
 
 		### Step 3: write out the pops ###
-		synchronizer.write_pops_marked_jvid ()
-
-
-
-		#--- FOR DEBUGGING ---
-		# print "\n\n##########[ --- SYNCHRONIZER OUTPUT --- ]##########"
-		# pops = [i for i in range(len(synchronizer.synchronized_skeletons)) if synchronizer.synchronized_skeletons[i].pop]
-		# beats = [i for i in range(len(synchronizer.synchronized_skeletons)) if synchronizer.synchronized_skeletons[i].beat]
-		# print "--- correspondences ---"
-		# print synchronizer.correspondences
-		# print "--- BEATS ---"
-		# print beats
-		# print "--- POPS ---"
-		# print pops
-		# print "\n\n"
-
+		autosynch.write_pops_marked_jvid ()
 
 		### Step 3: get synchronized_skeletons ###
-		synchronizer.synchronize ()
+		autosynch.synchronize ()
 
 		### Step 4: write the output to a file ###
-		synchronizer.write_synchronized_jvid ()
+		autosynch.write_synchronized_jvid ()
 
 
 	# Function: watch
@@ -350,14 +333,14 @@ class Auto_Synchronizer:
 if __name__ == "__main__":
 
 	### Step 1: initialize the interface ###
-	autosynch = Auto_Synchronizer ()
+	interface = Autosynch_Interface ()
 
 	### Step 2: determine the recording they are working with ###
-	autosynch.select_recording ()
+	interface.select_recording ()
 
 	### Step 3: run indefinitely ###
 	while True:
-		autosynch.run ()
+		interface.run ()
 
 
 
