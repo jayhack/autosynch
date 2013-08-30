@@ -20,6 +20,8 @@
 /*--- NiTE ---*/
 #include "NiTE.h"
 
+/*--- cpp_json ---*/
+#include "cpp_json/json.h"
 
 /*--- My Files ---*/
 #include "J_Joint.h"
@@ -48,6 +50,10 @@ private:
 	/*--- joints ---*/
 	J_Joint *joints [15];
 
+	/*--- higher-level properties ---*/
+	nite::BoundingBox 	bounding_box;
+	nite::Point3f 		center_of_mass;
+
 	/*--- beat/pop ---*/
 	bool beat;
 	bool pop;
@@ -64,10 +70,16 @@ public:
 	J_Skeleton (std::map<nite::JointType, J_Joint> new_joints, int new_timestamp);
 	J_Skeleton (nite::Skeleton *skeleton, nite::UserTracker *user_tracker);
 	J_Skeleton (J_Skeleton *skeleton);
+	J_Skeleton (json::value json_representation);
 	~J_Skeleton ();
 
 	/*--- Computing Properties ---*/
-	nite::BoundingBox getBoundingBox ();
+	void 				compute_higher_level_properties ();
+	nite::BoundingBox 	get_bounding_box ();
+	nite::Point3f 		get_center_of_mass ();
+
+	/*--- Json representation ---*/
+	json::object get_json_representation ();
 
 	/*--- Setters/Getters ---*/
 	bool		isValid 			();

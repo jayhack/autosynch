@@ -166,13 +166,13 @@ void NI_Recorder::onkey (unsigned char key, int x, int y) {
 			// Finalize();
 			exit (1);
 
-		/*### B: start recording ###*/
+		/*### R: start recording ###*/
 		case 'r':
 			print_status ("Main operation", "Started recording");
 			start_recording ();
 			break;	
 
-		/*### P: stop recording ###*/
+		/*### S: stop recording ###*/
 		case 's':
 			print_status ("Main operation", "Stopped recording");
 			stop_recording ();
@@ -197,14 +197,12 @@ void NI_Recorder::display () {
 
 	/*### Step 3: record it ###*/
 	if (isRecording ()) {
-		// print_status("Display", "Writing frame");
-		J_Skeleton *skeleton = frame->get_skeleton ();
-
+		print_status("Display", "Writing frame");
 		storage_delegate->write (frame);
 	}
 
 	/*### Step 2: draw it to the screen ###*/
-	// print_status ("Display", "Drawing frame");
+	print_status ("Display", "Drawing frame");
 	drawer.draw_frame (frame, isRecording());
 
 	/*### Step 3: free all memory dedicated to the frame, increment frame number ###*/

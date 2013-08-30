@@ -17,7 +17,7 @@
 J_Drawer::J_Drawer () {
 
 	/*--- initialize draw mode ---*/
-	draw_mode = DRAW_COLOR;
+	draw_mode = DRAW_DEPTH;
 
 	/*--- initialize colors ---*/
 	Colors[0][0] = 1;
@@ -358,7 +358,7 @@ void J_Drawer::indicate_beat () {
  */
 void J_Drawer::indicate_pop (J_Skeleton *skeleton) {
 
-	nite::BoundingBox bounding_box = skeleton->getBoundingBox ();
+	nite::BoundingBox bounding_box = skeleton->get_bounding_box ();
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 
@@ -555,6 +555,7 @@ void J_Drawer::draw_frame (J_Frame *frame, bool is_recording) {
 			pixel_texture_map = new openni::RGB888Pixel[texture_map_x * texture_map_y];
 		}
 	}
+
 
 
 	/*### Step 3: OpenGL Stuff... not sure what this does --- ###*/

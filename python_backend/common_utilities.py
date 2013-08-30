@@ -11,12 +11,22 @@
 # Function: print_welcome
 # -----------------------
 # prints out a welcome message
-def print_welcome ():
-	print "######################################################################"
-	print "####################[ --- DANCE AUTOSYNCHRONIZER --- ]################"
-	print "####################[ - by Jay Hack, Summer 2013   - ]################"
-	print "######################################################################"
-	print "\n"
+def print_welcome (app_name, author, publish_date):
+
+	label_width = 70
+
+	app_name_string =  "####################[ --- " + app_name + " --- ]"
+	publish_string = "####################[ - by " + author + ", " + publish_date + " - ]"
+
+	app_name_string += (label_width - len(app_name_string)) * '#'
+	publish_string += (label_width - len(publish_string)) * '#'
+
+	print '#' * label_width
+	print app_name_string
+	print publish_string
+	print '#' * label_width
+	print '\n'
+	
 
 # Function: print_message
 # -----------------------

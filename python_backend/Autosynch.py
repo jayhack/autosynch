@@ -88,7 +88,7 @@ class Autosynch:
 		if mode == 'synchronize':
 	
 			print_inner_status ("Initialization", "Loading the classifier")
-			self.load_classifier ('/Users/jhack/Programming/NI/ni_template/python_backend/classifiers/toprock_front_training.obj')
+			self.load_classifier ('/Users/jhack/Programming/NI/Autosynch/python_backend/classifiers/shuffle_front_training.obj')
 
 			print_inner_status ("Initialization", "Adding pop probabilities to skeletons")			
 			self.original_skeletons = mark_pop_probabilities (self.original_skeletons, self.classifier)

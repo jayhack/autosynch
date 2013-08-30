@@ -19,6 +19,9 @@
 /*--- NiTE ---*/
 #include "NiTE.h"
 
+/*--- cpp_json ---*/
+#include "cpp_json/json.h"
+
 /*--- My Files ---*/
 #include "J_Skeleton.h"
 
@@ -59,20 +62,21 @@ J_Skeleton::J_Skeleton () {
 
 	/*### Step 1: initialize joints ###*/
 	initialize ();
-
 }
 
 
-/* Constructor: nite::Skeleton
+/* Constructor: nite::Skeleton*, nite::UserTracker*
  * ---------------------------------
- * initializes via an nite::Skeleton
+ * initializes via a reference to an nite::Skeleton
+ * users the UserTracker so that it can get absolute coordinates.
  */
 J_Skeleton::J_Skeleton (nite::Skeleton *skeleton, nite::UserTracker *user_tracker) {
 
-	/*### Step 1: initialize joints ###*/
+	/*### Step 1: initialize skeleton ###*/
 	initialize ();
+	is_valid = true;
 
-	/*### Step 1: set joint positions/orientations ###*/
+	/*### Step 2: set joint positions/orientations ###*/
 	for (unsigned int i=0; i<JSKEL_NUM_OF_JOINTS;i++) {
 		
 		/*--- get position, position_absolute and orientation  ---*/
@@ -87,14 +91,14 @@ J_Skeleton::J_Skeleton (nite::Skeleton *skeleton, nite::UserTracker *user_tracke
 
 	}
 
-	is_valid = true;
+	/*### Step 3: compute higher-level properties ###*/
+	compute_higher_level_properties ();
 	return;
 }
 
-
 /* Constructor: J_Skeleton *skeleton
  * ---------------------------------
- * initializes via a J_Skeleton (essentially a copy constructor)
+ * initializes via a reference to a J_Skeleton (essentially a copy constructor)
  * if the skeleton passed in is null, this skeleton is set as not valid.
  */
 J_Skeleton::J_Skeleton (J_Skeleton *skeleton) {
@@ -110,19 +114,56 @@ J_Skeleton::J_Skeleton (J_Skeleton *skeleton) {
 
 		/*### Step 1: initialize joints ###*/
 		initialize ();
+		is_valid = true;		
 
-		/*### Step 1: set joint positions/orientations ###*/
+		/*### Step 2: set joint positions/orientations ###*/
 		for (unsigned int i=0; i<JSKEL_NUM_OF_JOINTS;i++) {
 			J_Joint *current_joint = skeleton->getJoint ((nite::JointType) i);
 			joints[i]->set (current_joint);
 		}
-		is_valid = true;
+		
+		/*### Step 3: compute higher-level properties ###*/
+		compute_higher_level_properties ();
+
 		return;
 	}
 }
 	
+/* Constructor: json::value
+ * ------------------------
+ * creates a skeleton from a json::value
+ */
+J_Skeleton::J_Skeleton (json::value json_representation) {
+
+	/*### Step 1: initialize joints ###*/
+	initialize ();
+	is_valid = true;		
+
+	/*### Step 2: joint objects ###*/
+	json::value json_joints = json_representation["joints"];
+	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
+		stringstream index;
+		index << i;
+
+		json::value json_current_joint = json_joints[index.str().c_str()];
+		joints[i]->set (json_current_joint);
+	}
+
+	/*### Step 3: higher-level properties ###*/
+	json::value json_beat = json_representation["beat"];
+	setBeat(json::to_number(json_beat) == 1);
+	json::value json_pop = json_representation["pop"];
+	setPop(json::to_number(json_pop) == 1);
+
+	/*### Step 3: compute higher-level properties ###*/
+	compute_higher_level_properties ();
+}
 
 
+/* Function: destructor
+ * --------------------
+ * only has to delete the joints, so far
+ */
 J_Skeleton::~J_Skeleton () {
 
 	/*### Step 1: delete all memory allocated to the joints ###*/
@@ -135,13 +176,26 @@ J_Skeleton::~J_Skeleton () {
 
 
 /*########################################################################################################################*/
-/*###############################[--- Computing misc. properties ---]#####################################################*/
+/*###############################[--- Computing Higher-Level Properties ---]##############################################*/
 /*########################################################################################################################*/
-/* Function: getBoundingBox
- * ------------------------
+/* Function: compute_higher_level_properties
+ * -----------------------------------------
+ * computes the following properties:
+ * - bounding box
+ * - center of mass 
+ */
+void J_Skeleton::compute_higher_level_properties () {
+
+	get_bounding_box ();
+	get_center_of_mass ();
+}
+
+
+/* Function: get_bounding_box
+ * --------------------------
  * returns the convex hull (bounding box) of the current skeleton
  */
-nite::BoundingBox J_Skeleton::getBoundingBox () {
+nite::BoundingBox J_Skeleton::get_bounding_box () {
 
 	nite::Point3f top_left, bottom_right;
 
@@ -165,22 +219,90 @@ nite::BoundingBox J_Skeleton::getBoundingBox () {
 
 
 
+/* Function: get_center_of_mass 
+ * ----------------------------
+ * computes the center of mass, stores it in the instance variable center_of_mass,
+ * then returns it. (this is in relative coordinates, all that we really need)
+ */
+nite::Point3f J_Skeleton::get_center_of_mass () {
+
+	float x_total = 0;
+	float y_total = 0;
+	float z_total = 0;
+	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
+		nite::Point3f position =  joints[i]->getPosition ();
+		x_total += position.x;
+		y_total += position.y;
+		z_total += position.z;
+	}
+	float x_avg = x_total / float(JSKEL_NUM_OF_JOINTS);
+	float y_avg = y_total / float(JSKEL_NUM_OF_JOINTS);
+	float z_avg = z_total / float(JSKEL_NUM_OF_JOINTS);
+
+	center_of_mass = nite::Point3f (x_avg, y_avg, z_avg);
+	return center_of_mass;
+}
 
 
 
 
+/*########################################################################################################################*/
+/*###############################[--- JSON Representation ---]############################################################*/
+/*########################################################################################################################*/
+/* Function: get_json_representation
+ * ---------------------------------
+ * returns a string representation of this skeleton in json
+ */
+json::object J_Skeleton::get_json_representation () {
+
+	json::object json_skel;
+	stringstream dump_stream;
+
+	/*### Step 1: center of mass ###*/
+	json::object json_center_of_mass;
+	json_center_of_mass.insert ("x", center_of_mass.x);
+	json_center_of_mass.insert ("y", center_of_mass.y);
+	json_center_of_mass.insert ("z", center_of_mass.z);
+	json_skel.insert ("center_of_mass", json_center_of_mass);
 
 
+	/*### Step 2: bounding box ###*/
+	json::object json_bounding_box;
+	json::object min;
+	json::object max;
+	min.insert ("x", bounding_box.min.x);
+	min.insert ("y", bounding_box.min.y);
+	max.insert ("x", bounding_box.max.x);
+	max.insert ("y", bounding_box.max.y);	
+	json_bounding_box.insert ("min", min);
+	json_bounding_box.insert ("max", max);
+	json_skel.insert ("bounding_box", json_bounding_box);
 
 
+	/*### Step 3: joints ###*/
+	json::object json_joints;
+	for (int i=0;i<JSKEL_NUM_OF_JOINTS;i++) {
 
+		/*--- get the json rep of the joint ---*/
+		J_Joint * current_joint = joints[i];
+		json::object json_current_joint = current_joint->get_json_representation ();
 
+		/*--- insert it along with the correct index ---*/
+		stringstream index;
+		index << i;
+		json_joints.insert (index.str().c_str(), json_current_joint); 
+	}
+	json_skel.insert ("joints", json_joints);
 
+	
+	/*### Step 4: beat/pop ###*/
+	if (beat) json_skel.insert ("beat", 1);
+	else json_skel.insert ("beat", 0);
+	if (pop) json_skel.insert ("pop", 1);
+	else json_skel.insert ("pop", 0);
 
-
-
-
-
+	return json_skel;
+}
 
 
 

@@ -58,7 +58,7 @@ class Autosynch_Interface:
 	# initializes the recordings_dir, all_recordings
 	def __init__ (self):
 
-		print_welcome ()
+		print_welcome ("Autosynch", "Jay Hack", "Summer 2013")
 
 		### Step 1: get the recordings directory ###
 		self.recordings_dir = os.path.join (os.getcwd(), 'Recordings')
@@ -238,7 +238,7 @@ class Autosynch_Interface:
 		os.chdir (os.path.join (os.getcwd(), "Bin"))
 
 		### Step 2: build the correct command and use it ###
-		system_command = "./x64-release/ni_template record " + self.selected_recording.full_filepath
+		system_command = "./x64-release/Autosynch record " + self.selected_recording.full_filepath
 		os.system (system_command)
 
 		### Step 3: update the recording's status ###
@@ -304,7 +304,7 @@ class Autosynch_Interface:
 			os.chdir (os.path.join (os.getcwd(), "Bin"))
 
 			### Step 2: build the correct command and use it ###
-			system_command = "./x64-release/ni_template " + jvids_map[selection] + " " + self.selected_recording.full_filepath
+			system_command = "./x64-release/Autosynch " + jvids_map[selection] + " " + self.selected_recording.full_filepath
 			os.system (system_command)
 
 			### Step 4: change back into the original directory ###

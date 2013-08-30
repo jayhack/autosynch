@@ -19,6 +19,9 @@
 /*--- NiTE ---*/
 #include "NiTE.h"
 
+/*--- cpp_json ---*/
+#include "cpp_json/json.h"
+
 /*--- My Files ---*/
 #include "Utilities.h"
 #include "J_Skeleton.h"
@@ -159,6 +162,19 @@ void J_StorageDelegate::write_skeleton (J_Skeleton *skeleton, ofstream &outfile)
 	}
 }
 
+/* Function: write_skeleton_json
+ * -----------------------------
+ * writes out the skeleton to the specified file in json format
+ */
+void J_StorageDelegate::write_skeleton_json (J_Skeleton *skeleton, ofstream &outfile) {
+	
+	if (skeleton == NULL) return;
+	json::object json_representation = skeleton->get_json_representation ();
+	outfile << json::pretty_print(json_representation);
+	return;
+}
+
+
 /* Function: write_frame_ref
  * ------------------------------
  * writes all data contained in the frame_ref to the specified outfile
@@ -185,6 +201,7 @@ void J_StorageDelegate::write_frame_ref (J_VideoFrameRef *frame_ref, ofstream &o
 	return;
 }
 
+
 /* Function: write_frame_ref
  * -------------------------
  * writes the specified J_VideoFrameRef to the .jvid file
@@ -203,23 +220,18 @@ void J_StorageDelegate::write (J_Frame *frame) {
 	string skeleton_filepath = filepaths.at(0);
 	string depth_filepath = filepaths.at(1);
 	string color_filepath = filepaths.at(2);
-
 	ofstream skeleton_outfile;
 	ofstream depth_outfile;
 	ofstream color_outfile;
-
 	skeleton_outfile.open (skeleton_filepath.c_str());
 	depth_outfile.open (depth_filepath.c_str());
 	color_outfile.open (color_filepath.c_str());
 
-	// cout << "		### Skeleton outfile: " << skeleton_filepath.c_str() << endl;
-	// cout << "		### Depth outfile: " << depth_filepath.c_str () << endl;
-	// cout << "		### Color outfile: " << color_filepath.c_str () << endl;
 
 	/*### Step 3: write the contents to each of them ###*/
-	write_skeleton 	(skeleton, skeleton_outfile);
-	write_frame_ref (depth_frame, depth_outfile);
-	write_frame_ref (color_frame, color_outfile);
+	write_skeleton_json (skeleton, skeleton_outfile);
+	write_frame_ref 	(depth_frame, depth_outfile);
+	write_frame_ref 	(color_frame, color_outfile);
 
 
 	/*### Step 4: cleanup ###*/
@@ -300,6 +312,27 @@ J_Skeleton * J_StorageDelegate::read_skeleton (ifstream &infile) {
 	return skeleton;
 }
 
+
+/* Function: read_skeleton_json
+ * ----------------------------
+ * reads in a skeleton from the specified infile via json format.
+ * Note: the user is responsible for freeing the returned skeleton.
+ */
+J_Skeleton * J_StorageDelegate::read_skeleton_json (ifstream &infile) {
+
+	/*### Step 1: make sure the skeleton isnt empty ###*/
+ 	if (infile.peek () == EOF) return NULL;
+
+
+ 	cout << "checkpoint 1" << endl;
+ 	if (!infile) cout << "file not open" << endl;
+    /*### Step 2: extract a json representation otherwise ###*/
+	json::value json_representation = json::parse (infile);
+	cout << "checkpoint 2" << endl;
+	J_Skeleton *skeleton = new J_Skeleton (json_representation);
+
+	return skeleton;
+}
 
 /* Function: read_frame
  * --------------------
@@ -398,7 +431,7 @@ J_Frame * J_StorageDelegate::read() {
 
 	/*### DEBUG: make sure it is reading in the right files ###*/
 	// cout << "		-------------------------------" << endl;
-	// cout << "		# Skeleton infile: " << skeleton_filepath.c_str () << endl;
+	cout << "		# Skeleton infile: " << skeleton_filepath.c_str () << endl;
 	// cout << "		# depth infile: " << depth_filepath.c_str () << endl;
 	// cout << "		# color infile: " << color_filepath.c_str () << endl;
 	// if (!skeleton_infile.is_open()) cout << "		(skeleton infile isn't opening)" << endl;
@@ -413,7 +446,7 @@ J_Frame * J_StorageDelegate::read() {
 
 
 	/*### Step 3: write the contents to each of them ###*/
-	J_Skeleton * 		skeleton 	= read_skeleton 	(skeleton_infile);
+	J_Skeleton * 		skeleton 	= read_skeleton_json 	(skeleton_infile);
 	J_VideoFrameRef * 	depth_frame = read_frame_ref 	(depth_infile);
 	J_VideoFrameRef * 	color_frame = read_frame_ref 	(color_infile);	
 

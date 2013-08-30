@@ -74,14 +74,16 @@ public:
 	vector<string> get_next_filepaths (int read_or_write);
 
 	/*--- Writing ---*/
+	void write_skeleton_json(J_Skeleton *skeleton, ofstream &outfile);
 	void write_skeleton 	(J_Skeleton *skeleton, ofstream &outfile);
 	void write_frame_ref 	(J_VideoFrameRef *frame_ref, ofstream &outfile);
 	void write 				(J_Frame *frame);
 
 	/*--- Reading ---*/
-	J_Skeleton *				read_skeleton 	(ifstream &infile);
-	J_VideoFrameRef *			read_frame_ref 	(ifstream &infile);
-	J_Frame * 					read 			();
+	J_Skeleton *				read_skeleton 		(ifstream &infile);
+	J_Skeleton *				read_skeleton_json	(ifstream &infile);
+	J_VideoFrameRef *			read_frame_ref 		(ifstream &infile);
+	J_Frame * 					read 				();
 
 	/*--- Controls ---*/
 	void start_recording ();
