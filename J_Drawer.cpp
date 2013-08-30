@@ -260,6 +260,8 @@ void J_Drawer::Draw_J_Limb (J_Joint* joint1, J_Joint* joint2, int color) {
  */
 void J_Drawer::Draw_J_Skeleton (J_Skeleton *skeleton) {
 
+	glLineWidth(3.0f);
+
 	/*--- Head + Neck ---*/
 	Draw_J_Limb(skeleton->getJoint(nite::JOINT_HEAD), skeleton->getJoint(nite::JOINT_NECK), 0);
 

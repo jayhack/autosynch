@@ -46,6 +46,27 @@ class J_Skeleton:
 		self.joints = joints
 
 
+	# Function: Constructor (from json)
+	# ---------------------------------
+	# creates a skeleton from a json dict 
+	def __init__ (self, original_index, exists, json_skeleton):
+
+		self.original_index = original_index
+		self.exists = exists
+		if not self.exists:
+			return
+
+		#--- beat/pop ---
+		self.beat = (json_skeleton["beat"] == 1)
+		self.pop = (json_skeleton["pop"] == 1)
+
+		#--- joints ---
+		self.joints = []
+		for i in range(15):
+			self.joints.append (J_Joint (json_skeleton["joints"][str(i)], i))
+
+
+
 	# Function: setters/getters
 	# -------------------------
 	# setters/getters for beat/pop

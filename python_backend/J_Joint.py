@@ -18,6 +18,8 @@ class J_Joint:
 	y_abs = None
 	z_abs = None
 
+	orientation = {}
+
 	joint_name = None
 
 	# Function: Constructor
@@ -36,6 +38,30 @@ class J_Joint:
 
 		#--- joint_name ---
 		self.joint_name = joint_name
+
+
+	# Function: Constructor (from json)
+	# ---------------------------------
+	# constructs a joint from a json representation of one
+	def __init__ (self, json_joint, joint_name):
+
+		self.joint_name = joint_name
+
+		#--- position ---
+		self.x = json_joint["position"]["x"]
+		self.y = json_joint["position"]["y"]
+		self.z = json_joint["position"]["z"]				
+
+		#--- position_absolute ---
+		self.x_abs = json_joint["position_absolute"]["x"]
+		self.y_abs = json_joint["position_absolute"]["y"]
+		self.z_abs = json_joint["position_absolute"]["z"]				
+
+		#--- orientation ---
+		self.orientation["w"] = json_joint["orientation"]["w"]		
+		self.orientation["x"] = json_joint["orientation"]["x"]
+		self.orientation["y"] = json_joint["orientation"]["y"]
+		self.orientation["z"] = json_joint["orientation"]["z"]								
 
 
 	# Function: String Representation

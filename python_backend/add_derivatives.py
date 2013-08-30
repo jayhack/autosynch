@@ -40,7 +40,7 @@ def get_derivatives (entries, derivative_length):
 
 		derivs = {}
 		if cur:
-			for i in cur.keys():
+			for i in range(len(cur)):
 
 
 				dx_dt = cur[i].x - prev[i].x

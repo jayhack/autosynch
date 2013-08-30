@@ -15,6 +15,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cmath>
 
 /*--- NiTE ---*/
 #include "NiTE.h"
@@ -249,6 +250,11 @@ nite::Point3f J_Skeleton::get_center_of_mass () {
 /*########################################################################################################################*/
 /*###############################[--- JSON Representation ---]############################################################*/
 /*########################################################################################################################*/
+void put_in_json (json::object &object, const char *key, float value) {
+	if (isnan(value)) value = 10000;
+	object.insert(key, value);
+}
+
 /* Function: get_json_representation
  * ---------------------------------
  * returns a string representation of this skeleton in json
@@ -260,9 +266,9 @@ json::object J_Skeleton::get_json_representation () {
 
 	/*### Step 1: center of mass ###*/
 	json::object json_center_of_mass;
-	json_center_of_mass.insert ("x", center_of_mass.x);
-	json_center_of_mass.insert ("y", center_of_mass.y);
-	json_center_of_mass.insert ("z", center_of_mass.z);
+	put_in_json (json_center_of_mass, "x", center_of_mass.x);
+	put_in_json (json_center_of_mass, "y", center_of_mass.y);
+	put_in_json (json_center_of_mass, "z", center_of_mass.z);		
 	json_skel.insert ("center_of_mass", json_center_of_mass);
 
 
@@ -270,10 +276,10 @@ json::object J_Skeleton::get_json_representation () {
 	json::object json_bounding_box;
 	json::object min;
 	json::object max;
-	min.insert ("x", bounding_box.min.x);
-	min.insert ("y", bounding_box.min.y);
-	max.insert ("x", bounding_box.max.x);
-	max.insert ("y", bounding_box.max.y);	
+	put_in_json (min, "x", bounding_box.min.x);
+	put_in_json (min, "y", bounding_box.min.y);	
+	put_in_json (max, "x", bounding_box.max.x);
+	put_in_json (max, "y", bounding_box.max.y);			
 	json_bounding_box.insert ("min", min);
 	json_bounding_box.insert ("max", max);
 	json_skel.insert ("bounding_box", json_bounding_box);

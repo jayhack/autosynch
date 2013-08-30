@@ -153,6 +153,7 @@ boost::shared_ptr<array> get_array(In &it, const In &last) {
 
 template <class In>
 value get_value(In &it, const In &last) {
+
 	switch(peek_char(it, last)) {
 	case '{': return value(get_object(it, last));
 	case '[': return value(get_array(it, last));
@@ -177,7 +178,6 @@ value get_value(In &it, const In &last) {
 	case 'n':
 		return value(get_null(it, last));
 	}
-
 	throw value_expected();
 }
 

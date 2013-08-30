@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 /*--- NiTE ---*/
 #include "NiTE.h"
@@ -54,6 +55,11 @@ J_Joint::J_Joint (nite::Point3f new_position, nite::Point3f new_position_absolut
 /*########################################################################################################################*/
 /*###############################[--- JSON Represenation ---]#############################################################*/
 /*########################################################################################################################*/
+void put_in_json_joint (json::object &object, const char *key, float value) {
+	if (std::isnan(value)) value = 10000;
+	object.insert(key, value);
+}
+
 /* Function: get_json_representation
  * ---------------------------------
  * returns a json object representing this joint
@@ -61,20 +67,20 @@ J_Joint::J_Joint (nite::Point3f new_position, nite::Point3f new_position_absolut
 json::object J_Joint::get_json_representation () {
 
 	json::object json_position;
-	json_position.insert ("x", position.x);
-	json_position.insert ("y", position.y);
-	json_position.insert ("z", position.z);
+	put_in_json_joint (json_position, "x", position.x);
+	put_in_json_joint (json_position, "y", position.y);
+	put_in_json_joint (json_position, "z", position.z);		
 
 	json::object json_position_absolute;
-	json_position_absolute.insert ("x", position_absolute.x);
-	json_position_absolute.insert ("y", position_absolute.y);
-	json_position_absolute.insert ("z", position_absolute.z);		
+	put_in_json_joint (json_position_absolute, "x", position_absolute.x);
+	put_in_json_joint (json_position_absolute, "y", position_absolute.y);
+	put_in_json_joint (json_position_absolute, "z", position_absolute.z);
 
 	json::object json_orientation;
-	json_orientation.insert ("w", orientation.w);
-	json_orientation.insert ("x", orientation.x);
-	json_orientation.insert ("y", orientation.y);
-	json_orientation.insert ("z", orientation.z);			
+	put_in_json_joint (json_orientation, "w", orientation.x);	
+	put_in_json_joint (json_orientation, "x", orientation.x);
+	put_in_json_joint (json_orientation, "y", orientation.y);
+	put_in_json_joint (json_orientation, "z", orientation.z);
 
 	json::object json_representation;
 	json_representation.insert	("position", json_position);

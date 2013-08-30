@@ -12,16 +12,20 @@
 import os
 import sys
 import pickle
+import json
+
+#--- json ---
+
 
 #--- My files ---
 from J_Joint import J_Joint
 from J_Skeleton import J_Skeleton
 
 
-# Function: read_in_skeletons
+# Function: read_in_skeletons_json
 # ---------------------------------
 # given an open file, this will read in the next skeleton
-def read_in_skeletons (jvid_filename):
+def read_in_skeletons_old (jvid_filename):
 
 	### data ###
 	skeletons = []
@@ -77,6 +81,48 @@ def read_in_skeletons (jvid_filename):
 
 	return skeletons
 		
+
+
+# Function: read_in_skeletons
+# ---------------------------------
+# given an open file, this will read in the next skeleton
+# takes them in via json format
+def read_in_skeletons (jvid_filename):
+
+	### data ###
+	skeletons = []
+	infile_name = ''
+	read_index = 0
+
+
+	while True:
+	
+		#--- initial values ---
+		exists = 0
+		beat = 0
+		pop = 0
+		joints = {}
+
+		### Step 1: make sure infile exists, open it ###
+		infile_name = jvid_filename + "/" + str(read_index) + ".s"
+		# print "infile name = " + infile_name
+ 		if not os.path.exists (infile_name):
+			break
+		infile = open (infile_name, 'r')
+		content = infile.read ()
+		
+		skeleton = None
+		if len(content) < 10:
+			skeleton = J_Skeleton (read_index, False, None)
+		else:	
+			json_skeleton = json.loads (content)
+			skeleton = J_Skeleton (read_index, True, json_skeleton)
+		
+		skeletons.append (skeleton)
+
+		read_index += 1
+
+	return skeletons
 
 
 # Function: write_out_skeletons

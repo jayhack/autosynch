@@ -323,12 +323,8 @@ J_Skeleton * J_StorageDelegate::read_skeleton_json (ifstream &infile) {
 	/*### Step 1: make sure the skeleton isnt empty ###*/
  	if (infile.peek () == EOF) return NULL;
 
-
- 	cout << "checkpoint 1" << endl;
- 	if (!infile) cout << "file not open" << endl;
     /*### Step 2: extract a json representation otherwise ###*/
 	json::value json_representation = json::parse (infile);
-	cout << "checkpoint 2" << endl;
 	J_Skeleton *skeleton = new J_Skeleton (json_representation);
 
 	return skeleton;
